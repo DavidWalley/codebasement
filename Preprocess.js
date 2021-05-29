@@ -143,8 +143,8 @@ function                                ProcessFile_Macro(//////////////////////
   sTidy += ProcessFile_Macro_Line( sLine )+"\n";                                                        //>
  }//for iLine                                                                                           //>
                                                                                                         //>
+ sTidy = sTidy.split('\\').join('\\\\');                                                                //>
  var                                    sPathFileOut_1          = a_sPathFileOut+'_1';                  //>
-sTidy = sTidy.replace('\\','\\\\');                                                                     //>
  fs.writeFileSync( sPathFileOut_1  ,sTidy );                                                            //> Save this intermediate file.
  var                  r_binary = require('child_process').execSync( 'node "'+ sPathFileOut_1 +'"' );    //> Run intermediate file as JavaScript, saving its console.log output.
  fs.writeFileSync( a_sPathFileOut ,r_binary ,"binary" ,function(err){} );                               //> Save this preprocessed file.
@@ -157,17 +157,13 @@ var                                     sFile                   = asPath.pop(); 
 var                                     sPath                   = asPath.join('/');                     //>
                                                                                                         //>
 if(       'T' === asARGS[0] ){                                                                          //>
- ProcessFile_Tidy(          sPath+'/'+sFile              ,sPath+'/'           +sFile      );            //> Tidy the code file in place.
+ ProcessFile_Tidy(          sPath+'/'+sFile             ,sPath+'/'           +sFile   );                //> Tidy the code file in place.
                                                                                                         //>
 }else if( 'TM'   === asARGS[0] ){                                                                       //>
-                                        sPathOut                = sPath+'/TEMP_MACRO/'+sFile;           //>
- ProcessFile_Tidy(          sPath+'/'+sFile   ,sPath+'/'+sFile   );                                     //> Tidy the code file in place.
- ProcessFile_Macro( 'main' ,sPath+'/'+sFile   ,sPathOut          );                                     //> Macro-expansion processing: Expand macros with results going to a sub-directory.
- var                                    sCommand                = 'prettier --write '+ sPathOut ;       //>
- console.log( sCommand );                                                                               //>
- require('child_process').execSync( sCommand );                                                         //> Run prettier via a synchronous system call, over-writing existing file.
-                                                                                                        //>
-//ProcessFile_Macro( 'test' ,sPath+'/'+sFile              ,sPath+'/TEMP_TEST/' +sFile      );           //> Expand macros with 'test' parameter, with results going to a sub-directory.
+ ProcessFile_Tidy(          sPath+'/'+sFile             ,sPath+'/'           +sFile   );                //> Tidy the code file in place.
+ ProcessFile_Macro( 'main' ,sPath+'/'+sFile             ,sPath+'/TEMP_MACRO/'+sFile   );                //> Macro-expansion processing: Expand macros with results going to a sub-directory.
+ require('child_process').execSync( 'prettier --write '+ sPath+'/TEMP_MACRO/'+sFile   );                //> Run prettier via a synchronous system call, over-writing existing file.
+ ProcessFile_Macro( 'test' ,sPath+'/'+sFile             ,sPath+'/TEMP_TEST/' +sFile   );                //> Expand macros with 'test' parameter, with results going to a sub-directory.
                                                                                                         //>
 }//if                                                                                                   //>
                                                                                                         //>
