@@ -3,9 +3,11 @@
                                                                                                         //>
                                                                                                         //>
 //* var r_sTest ='';                                                                                    //> Macro execution start: Run this as JavaScript code during macro-expansion phase of Preprocess.js. Variable 'r_sMacro' will eventually be saved in result file.
-//* console.log('/* sMode= '+ sMode +' */');                                                            //> Test variable passed in from command line.
+//* console.log('/* sMode= '+ sMode +' */');                                                            //> Test variable passed in from tool-chain command.
+//* var u = '"use strict"';                                                                             //>
 //* console.log(`                                                                                       //> Start multi-line text string of code:
-                        /*'var sM="'+ sMode +'";' */                                                    //> Example of injecting macro value (text with value from command line) into expanded code.
+/*u*/;                                                                                                  //> "use strict"; Example of injecting macro value into expanded code.
+                        /*'var sM = "'+ sMode +'";' */                                                  //> Example of injecting macro value (text with value from command line) into expanded code.
                                                                                                         //>
 /*                                                                                                      //>
 Tidy:                                                                                                   //>
@@ -25,15 +27,13 @@ Macro language and expansion:                                                   
       when followed by a space, can be used for comments which survive the  prettier step.              //>
 */                                                                                                      //>
                                                                                                         //>
-"use strict";                                                                                           //>
-                                                                                                        //>
 const                                   asARGS                  = process.argv.slice(2);                //> Ignore first 2 arguments (node and path to this file).
 const                                   fs                      = require('fs');                        //> Node's standard file system.
                                                                                                         //>
 function                                iTidiedFile_Split(////////////////////////////////////////////////>* Find split point between code and comments.
                                         a_sMode                                                         //>* Given parsing variation, e.g., ''=split at floating comment, or 'strip'=split at first comment.
 ,                                       a_sLine                                                         //>* Source code line.
-){                                      //////////////////////////////////////////////////////////////////>* Report an integer.
+){                                      //////////////////////////////////////////////////////////////////>* Return an integer.
  if( undefined === a_sMode ){                                                             return -1;}   //>
  var                                    sInQuotes               = '';                                   //>
  var                                    sWas                    = '';                                   //> Previous character.
@@ -66,9 +66,9 @@ return r_iChar;                                                                 
 //* `;} console.log(`                                                                                   //>
                                                                                                         //>
                                                                                                         //>
-function                                sProcessFile_LineTidy(////////////////////////////////////////////>* Create a tidied version of the given line.
-                                        a_sLine                                                         //>* Source code line.
-){                                      //////////////////////////////////////////////////////////////////>* Report '' on success, or an error message.
+function                                ProcessFile_Tidy_Line(////////////////////////////////////////////> * Create a tidied version of the given line.
+                                        a_sLine                                                         //> * Source code line.
+){                                      //////////////////////////////////////////////////////////////////> * Return '' on success, or an error message.
  var                                    r_s                     = '';                                   //>
  var                                    iChar                   = iTidiedFile_Split( '' ,a_sLine );     //> Split floating code from comments.
  var                                    sCode                   = a_sLine.slice(0,iChar  )          ;   //>
@@ -81,73 +81,74 @@ return sCode.trimEnd().padEnd(iSLIDEtO     ) +'//>'+ sComments;                 
                                                                                                         //> Otherwise
  while( iSLIDEtO < sCode.length   &&   '/' === sCode.slice(-1) ){ sCode = sCode.slice(0,-1); }          //> remove all extra slashes beyond the end of code portion of line.
 return sCode.padEnd(          iSLIDEtO ,'/') +'//>'+ sComments;                                         //> Pad the code with additional slashes after the existing streak.
-}//sProcessFile_LineTidy//////////////////////////////////////////////////////////////////////////////////>
+}//ProcessFile_Tidy_Line//////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                sProcessFile_LineMacro(///////////////////////////////////////////>* Create a tidied version of the given file.
-                                        a_sLine                                                         //>* Source code line.
-){                                      //////////////////////////////////////////////////////////////////>* Report '' on success, or an error message.
- var                                    r_s                     = '';                                   //>
- var                                    sLine                   = a_sLine +'   ';                       //>
- if( '//* ' === sLine.slice(0,4) ){ sLine = sLine.slice(4); }                                           //> Uncomment lines starting with this.
- else{                                                                                                  //>
-  var                                   asParts                 = sLine.split('/*');                    //> Look for block comments with no spaces at start and end - immediate replacement with `+(...)+`
-  sLine = asParts[0];                                                                                   //>
-  for( var i = 1; i < asParts.length; i++ ){                                                            //>
-   var                                  s                       = asParts[i];                           //>
-   if( ' ' !== s[0]   &&   s.includes('*/') ){ sLine += '\u0060+'+ s.replace('*'+'/' ,'+\u0060'); }     //>
-   else                                      { sLine += '/*'+      s                            ; }     //>
- }}//for i//else                                                                                        //>
-                                                                                                        //>
- var                                    iChar                = iTidiedFile_Split('strip' ,sLine +'//'); //> Split all code from comments.
- var                                    sCode                = sLine.slice(0 ,iChar-1);                 //>
-return sCode.trimEnd();                                                                                 //>
-}//sProcessFile_LineMacro/////////////////////////////////////////////////////////////////////////////////>
-                                                                                                        //>
-                                                                                                        //>
-function                                ProcessFile(//////////////////////////////////////////////////////>* Create a tidied version of the given file.
-                                        a_sMode                                                         //>* Process variation, e.g., 'tidy' or 'macro'
-,                                       a_sPathFileIn                                                   //>* Path and file name of the file to be tidied.
+function                                ProcessFile_Tidy(/////////////////////////////////////////////////>* Create a tidied version of the given file.
+                                        a_sPathFileIn                                                   //>* Path and file name of the file to be tidied.
 ,                                       a_sPathFileOut                                                  //>* Path and file name of the output file (re-writes existing).
-){                                      //////////////////////////////////////////////////////////////////>* Report '' on success, or an error message.
- if( a_sPathFileIn.slice(-3) !== '.js' ){ return 'Not a javascript file.'; }                            //>
+){                                      //////////////////////////////////////////////////////////////////>* Return nothing. Write to result file.
+ if( a_sPathFileIn.slice(-3) !== '.js' ){ return 'Not a javascript file (ProcessFile_Tidy).'; }         //>
                                                                                                         //>
  const                                  sDATA                 = fs.readFileSync(a_sPathFileIn,'UTF-8'); //> read contents of the file
- const                                  asLINES                 = sDATA.split("\n");                    //> split the contents by new line
  var                                    sTidy                   = '';                                   //> Pass give value to the macro JS code
- switch( a_sMode ){                                                                                     //>
- case       'tidy' :                                                                                    //>
- break;case 'macro': case 'test' : sTidy += 'var sMode="'+ a_sMode +'";' +"\n";                         //>
- }//switch                                                                                              //>
-//sTidy += '/* = = = = */';                                                                             //>
-                                                                                                        //>
- var                                    r_sError                = '';                                   //>
+ const                                  asLINES                 = sDATA.split("\n");                    //> split the contents by new line
  for( var iLine = 0; iLine < asLINES.length; iLine++ ){                                                 //>
   var                                   sLine                   = asLINES[iLine];                       //>
   if( iLine === asLINES.length-1   &&   '' === sLine ){                                                 //> If on last line, and it is blank, then
  break;//for iLine                                                                                      //> we are done
   }//if                                                                                                 //> .
+  sTidy += ProcessFile_Tidy_Line(  sLine )+"\n";                                                        //>
+ }//for iLine                                                                                           //>
+ if( sDATA !== sTidy ){   fs.writeFileSync( a_sPathFileOut ,sTidy );   }                                //> If a change has been made, then write the new contents of the output file.
+}//ProcessFile_Tidy///////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
-  switch( a_sMode ){                                                                                    //>
-  case       'tidy' :               sTidy += sProcessFile_LineTidy(  sLine )+"\n";                      //>
-  break;case 'macro': case 'test' : sTidy += sProcessFile_LineMacro( sLine )+"\n";                      //>
-  }//switch                                                                                             //>
+                                                                                                        //>
+function                                ProcessFile_Macro_Line(///////////////////////////////////////////> * Create a macro expanded version of the given line.
+                                        a_sLine                                                         //> * Source code line.
+){                                      //////////////////////////////////////////////////////////////////> * Return a text string.
+ var                                    r_s                     = '';                                   //>
+ var                                    sLine                   = a_sLine +'   ';                       //>
+ if( '//* ' === sLine.slice(0,4) ){ sLine = sLine.slice(4); }                                           //> Uncomment lines starting with this.
+ else{                                                                                                  //> For all other lines...
+  var                                   asParts                 = sLine.split('/*');                    //> Look for block comments.
+  sLine = asParts[0];                                                                                   //> Output will start with everything before.
+  for( var i = 1; i < asParts.length; i++ ){                                                            //> For each other part
+   var                                  s                       = asParts[i];                           //>
+   if( ' ' === s[0]   ||   ! s.includes('*/') ){ sLine += '/*'     + s;                             }   //> If the block comment starts with a space, or there is no end to the block comment then append the part as is, and move on to next part.
+   else                                        { sLine += '\u0060+'+ s.replace('*'+'/' ,'+\u0060'); }   //> Otherwise, immediate replacement with `+(...)+`
+ }}//for i//else                                                                                        //>
+                                                                                                        //>
+ var                                    iChar                = iTidiedFile_Split('strip' ,sLine +'//'); //> Split all code from comments.
+ var                                    sCode                = sLine.slice(0 ,iChar-1);                 //>
+return sCode.trimEnd();                                                                                 //>
+}//ProcessFile_Macro_Line/////////////////////////////////////////////////////////////////////////////////>
+                                                                                                        //>
+                                                                                                        //>
+function                                ProcessFile_Macro(////////////////////////////////////////////////>* Create a tidied version of the given file.
+                                        a_sMode                                                         //>* Process variation, e.g., 'tidy' or 'macro'
+,                                       a_sPathFileIn                                                   //>* Path and file name of the file to be tidied.
+,                                       a_sPathFileOut                                                  //>* Path and file name of the output file (re-writes existing).
+){                                      //////////////////////////////////////////////////////////////////>* Return nothing. Write result files.
+ if( a_sPathFileIn.slice(-3) !== '.js' ){ return 'Not a javascript file (ProcessFile_Macro).'; }        //>
+                                                                                                        //>
+ const                                  sDATA                 = fs.readFileSync(a_sPathFileIn,'UTF-8'); //> read contents of the file
+ var                                    sTidy                   = 'var sMode="'+ a_sMode +'";' +"\n";   //> Pass given value into the macro-expanded JavaScript.
+ const                                  asLINES                 = sDATA.split("\n");                    //> split the contents by new line
+ for( var iLine = 0; iLine < asLINES.length; iLine++ ){                                                 //>
+  var                                   sLine                   = asLINES[iLine];                       //>
+  if( iLine === asLINES.length-1   &&   '' === sLine ){                                                 //> If on last line, and it is blank, then
+ break;//for iLine                                                                                      //> we are done
+  }//if                                                                                                 //> .
+  sTidy += ProcessFile_Macro_Line( sLine )+"\n";                                                        //>
  }//for iLine                                                                                           //>
                                                                                                         //>
- switch( a_sMode ){                                                                                     //>
- case       'tidy' :                                                                                    //>
-  if( sDATA !== sTidy ){                                                                                //> If a change has been made,
-   fs.writeFileSync( a_sPathFileOut         ,sTidy                                         );           //> then write the new contents of the output file
-  }//if                                                                                                 //> .
-                                                                                                        //>
- break;case 'macro': case 'test' :                                                                      //>
-  fs.writeFileSync( a_sPathFileOut+'_macro' ,sTidy );                                                   //> Save this intermediate file, for DEBUG.
-  var sRet = require('child_process').execSync( 'node "'+ a_sPathFileOut+'_macro' +'"' );               //> Run prettier via a synchronous system call, over-writing existing file.
-  fs.writeFile(a_sPathFileOut+'_expand', sRet,  "binary",function(err) { });                            //>
- }//switch                                                                                              //>
-                                                                                                        //>
-return r_sError;                                                                                        //>
-}//ProcessFile////////////////////////////////////////////////////////////////////////////////////////////>
+ var                                    sPathFileOut_1          = a_sPathFileOut+'_1';                  //>
+sTidy = sTidy.replace('\\','\\\\');                                                                     //>
+ fs.writeFileSync( sPathFileOut_1  ,sTidy );                                                            //> Save this intermediate file.
+ var                  r_binary = require('child_process').execSync( 'node "'+ sPathFileOut_1 +'"' );    //> Run intermediate file as JavaScript, saving its console.log output.
+ fs.writeFileSync( a_sPathFileOut ,r_binary ,"binary" ,function(err){} );                               //> Save this preprocessed file.
+}//ProcessFile_Macro//////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
 console.log( asARGS );                                                                                  //> DEBUG
@@ -155,17 +156,19 @@ var                                     asPath                  = asARGS[1].spli
 var                                     sFile                   = asPath.pop();                         //> https://stackoverflow.com/questions/423376/how-to-get-the-file-name-from-a-full-path-using-javascript
 var                                     sPath                   = asPath.join('/');                     //>
                                                                                                         //>
-var                                     sError                  = '';                                   //>
 if(       'T' === asARGS[0] ){                                                                          //>
- sError += ProcessFile( 'tidy'  ,sPath+'/'+sFile         ,sPath+'/'      +sFile      );                 //> Tidy the code file in place.
+ ProcessFile_Tidy(          sPath+'/'+sFile              ,sPath+'/'           +sFile      );            //> Tidy the code file in place.
                                                                                                         //>
 }else if( 'TM'   === asARGS[0] ){                                                                       //>
- sError += ProcessFile( 'tidy'  ,sPath+'/'+sFile         ,sPath+'/'      +sFile      );                 //> Tidy the code file in place.
- sError += ProcessFile( 'macro' ,sPath+'/'+sFile         ,sPath+'/MACRO/'+sFile      );                 //> Macro-expansion processing: Expand macros with results going to a sub-directory.
-// require('child_process').execSync( 'prettier --write "'+ sPath+'/MACRO/'+sFile +'"' );               //> Run prettier via a synchronous system call, over-writing existing file.
-// sError += ProcessFile( 'test'  ,sPath+'/'+sFile         ,sPath+'/TEST/' +sFile      );               //> Expand macros with 'test' parameter, with results going to a sub-directory.
+                                        sPathOut                = sPath+'/TEMP_MACRO/'+sFile;           //>
+ ProcessFile_Tidy(          sPath+'/'+sFile   ,sPath+'/'+sFile   );                                     //> Tidy the code file in place.
+ ProcessFile_Macro( 'main' ,sPath+'/'+sFile   ,sPathOut          );                                     //> Macro-expansion processing: Expand macros with results going to a sub-directory.
+ var                                    sCommand                = 'prettier --write '+ sPathOut ;       //>
+ console.log( sCommand );                                                                               //>
+ require('child_process').execSync( sCommand );                                                         //> Run prettier via a synchronous system call, over-writing existing file.
+                                                                                                        //>
+//ProcessFile_Macro( 'test' ,sPath+'/'+sFile              ,sPath+'/TEMP_TEST/' +sFile      );           //> Expand macros with 'test' parameter, with results going to a sub-directory.
                                                                                                         //>
 }//if                                                                                                   //>
-console.log( "sError:"+ sError );                                                                       //>
                                                                                                         //>
 //* `); console.log( "//Tests: "); console.log(r_sTest);                                                //> End of file.
