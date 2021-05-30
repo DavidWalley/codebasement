@@ -21,6 +21,8 @@ While some of these tools are undoubtedly useful, most do not offer the develope
 
   Code is padded with spaces or slashes (3 or more slashes followed by > is automatically extended to create quick way to draw decoration divider line).
 
+  Preprocess.js is both a JS application to do this, and is example code showing result.
+
 ## Macro language and expansion:
   The custom macro language, to be used on JavaScript source code files, is JavaScript itself.
   
