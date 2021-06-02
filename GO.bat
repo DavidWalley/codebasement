@@ -1,20 +1,10 @@
-GOTO :Go_one
 rem CodeBaseMent local tool-chain for JS code development
 rem Notepad++ NppExec plug-in code that should get us here: (f6 , then paste the following and save as GO_bat. Advanced - put on menu, then, set hot-key to this menu item).
+
+rem inputbox "Neatify, Macro, Test" : N
 rem npp_save
-rem cmd /c C:\$\Code\GO.bat "$(FULL_CURRENT_PATH)"
+rem cmd /c C:\$\Code\codebasement\GO.bat $(INPUT) "$(FULL_CURRENT_PATH)" $(CURRENT_LINE) $(CURRENT_COLUMN)
 rem npp_menucommand File\Reload
 
-:Go_one&                                                                                                rem Tidy one file.
-rem node "C:\$\Code\codebasement\Preprocess.js"         TMP %1&                                         rem Run Dave's custom pre-processor tool-chain 'TMP' (tidy, macro expand and prettify), passing along the path and file name of current Notepad++ tab.
-node "C:\$\Code\codebasement\TEMP_PRETTY\Preprocess.js" TMP %1&                                         rem Run Dave's custom pre-processor tool-chain 'TMP' (tidy, macro expand and prettify), passing along the path and file name of current Notepad++ tab. 
-
-GOTO :End
-
-:Go_project&                                                                                            rem Tidy files in project.
-node "C:\$\Code\codebasement\Preprocess.js" T "C:\$\Code\Daves Preprocessor\Preprocess.js"
-node "C:\$\Code\codebasement\Preprocess.js" T "C:\$\Code\HelloWorld\app.js"
-
-GOTO :End
-
-:End
+cd "C:\$\Code\codebasement\"&           rem Custom pre-processor and tool-chain tools.
+node Preprocess.js %1 %2 %3 %4&         rem Run tool-chain, passing along user dialog input and current Notepad++ file and cursor info.

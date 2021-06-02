@@ -2,9 +2,11 @@
 // (c)2021 David C. Walley                                                                              //>
                                                                                                         //>
                                                                                                         //>
-//* var r_sTest ='';                                                                                    //> Macro execution start: Run this as JavaScript code during macro-expansion phase of Preprocess.js. Variable 'r_sMacro' will eventually be saved in result file.
+//* var                                 r_sTest                 ='';                                    //> Macro execution start: Run this as JavaScript code during macro-expansion phase of Preprocess.js. Variable 'r_sMacro' will eventually be saved in result file.
 //* console.log('/* sMode= '+ sMode +' */');                                                            //> Test variable passed in from tool-chain command.
-//* var sUseStrict = '"use strict"';                                                                    //> Example variable to inject in output.
+//* var                                 sUseStrict              = '"use strict"';                       //> Example variable to inject in output.
+//* var                                 fs                      = require('fs');                        //>
+//* console.log( fs.readFileSync('./Macros.js') );                                                      //>
 //* console.log(`                                                                                       //> Start multi-line text string of code:
 /*sUseStrict*/;                                                                                         //> Example of injecting macro value into expanded code.
   /*'var sM = "'+ sMode +'";'*/                                                                         //> Example of injecting macro value (literal text string and value from command line) into expanded code.
@@ -36,21 +38,32 @@ Macro language and expansion:                                                   
 const                                   fs                      = require('fs');                        //> Node's standard file system.
                                                                                                         //>
                                                                                                         //>
+const                                   sPATHrOOT               = 'c:/0mf';                             //>
+// DIRECTORY SETUP (for Mindfuel):                                                                      //>
+//  c:/$/Code/codebasement/ - Root of preprocessing code.                                               //>
+//  c:/0mf/                 - Mindfuel rescue project root.                                             //>
+//        /Main             - copy of main branch of (Mindfuel) source code.                            //>
+//        /Notes            - Notated base files - copies of source code directories and files, created as needed, notated and with macors.//>
+//        /TEMP_expand      - Intermediate results of expanding macros.                                 //>
+//        /TEMP_PrettyMain  - prettified main source code directories and files.                        //>
+//        /TEMP_PrettyNotes - Result of prettifying macro expanded notated base files.                  //>
+//        /TEMP_Tests       - Result of macro expansion of tests. Can be executed.                      //>
+//                                                                                                      //>
 // BASIC TOOL CHAIN:                                                                                    //>
 //             v----tidy------<  Slide floating comments, extend decoration lines.                      //>
 //             v              |                                                                         //>
 // +----------------------+   |                                                                         //>
-// | Source codebase repo |---^                                     NOTES                               //> Source codebase repo, with extensive comments, macros
-// |                      |---> macro expand test -->               NOTES/TEMP_TESTS --> execute tests  //> Code ready for test execution.
-// |                      |---> macro expand main -->               NOTES/TEMP_MACRO                    //> Macro-expanded code.
-// +----------------------+                        --> prettier --> NOTES/TEMP_PRETTY  <---\            //> Prettified notes code. If different from MAIN/TEMP_PRETTY then edit NOTES.
-//                                                                                          compare     //> Use compare app or plug-in, and update NOTES source file to stay in sync?
-//                                            >------> prettier --> MAIN /TEMP_PRETTY  <---/            //> Prettified main code
-//                                            |                                                         //>
-//                               +-------------------+                                                  //>
-//                               | Production code   |              MAIN                                //> Main repo source code - used for production - may not be prettified.
-//                               | (normal git repo) |                                                  //> MAIN/TEMP_PRETTY
-//                               +-------------------+                                                  //>
+// | Source codebase repo |---^                                      Notes                              //> Source codebase repo, with extensive comments, macros
+// |New version with notes|---> macro expand 'test' -->              TEMP_Tests --> execute tests       //> Code ready for test execution.
+// |and macros.           |---> macro expand 'main' -->              TEMP_expand                        //> Macro-expanded code.
+// +----------------------+                         --> prettier --> TEMP_PrettyNotes  <---\            //> Prettified notes code. If different from MAIN/TEMP_PRETTY then edit NOTES.
+//                                                                                         compare      //> Use compare app or plug-in, and update NOTES source file to stay in sync?
+//               >------------------------------------> prettier --> TEMP_Pretty       <---/            //> Prettified main code
+//               |                                                                                      //>
+//  +-------------------+                                                                               //>
+//  | Production code   |                                            Main                               //> Main repo source code - used for production - may not be prettified.
+//  | (normal git repo) |                                                                               //> MAIN/TEMP_PRETTY
+//  +-------------------+                                                                               //>
 function                                Go(///////////////////////////////////////////////////////////////> Main execution of this file starts here.
                                                                                                         //>
 ){                                      //////////////////////////////////////////////////////////////////>
@@ -64,21 +77,24 @@ function                                Go(/////////////////////////////////////
 return 'Not a javascript file.';                                                                        //>
  }//if                                                                                                  //>
                                                                                                         //>
- if( 'T'   === asARGS[0]   ||   'TMP' === asARGS[0] ){                                                  //> If request includes Tidy, then
-  Go_Tidy(          sPath+'/'+sFile             ,sPath+'/'            +sFile   );                       //> Tidy the code file in place
- }//if                                                                                                  //> .
-                                                                                                        //>
- if( 'TMP' === asARGS[0] ){                                                                             //> If request is for Tidy current file in place, Macro expansion, and prettification.
+ if( 'M' === asARGS[0]   ||   'm' === asARGS[0] ){                                                      //> If request is for Tidy current file in place, Macro expansion, and prettification.
   Go_Macro( 'main'          ,sPath+'/'            +sFile ,sPath+'/TEMP_MACRO/' +sFile   );              //> Expand macros with results going to a sub-directory.
   fs.copyFile(               sPath+'/TEMP_MACRO/' +sFile ,sPath+'/TEMP_PRETTY/'+sFile ,(err) => {} );   //>
   require('child_process').execSync( 'prettier --write '+ sPath+'/TEMP_PRETTY/'+sFile   );              //> Run prettier via a synchronous system call, over-writing existing file.
   // Prettify main repo to TEMP_MAIN                                                                    //>
   // Compare TEMP_MACRO and TEMP_MAIN files.                                                            //>
+return '';                                                                                              //> Report success.
+ }//if                                                                                                  //> .
                                                                                                         //>
-//  Go_Macro( 'test' ,sPath+'/'+sFile             ,sPath+'/TEMP_TEST/'  +sFile   );                     //> Expand macros with 'test' parameter, with results going to a sub-directory.
+ if( 'N' === asARGS[0]   ||   'n' === asARGS[0] ){                                                      //> If request is 'Neat', then
+  Go_Tidy(                   sPath+'/'+sFile             ,sPath+'/'            +sFile   );              //> Tidy the code file in place
+return '';                                                                                              //> Report success.
+ }//if                                                                                                  //> .
                                                                                                         //>
+ if( 'T' === asARGS[0]   ||   't' === asARGS[0] ){                                                      //> If request is for Macro expansion for tests, and then running.
+  Go_Macro( 'test'          ,sPath+'/'+sFile ,sPath+'/TEMP_TEST/'  +sFile   );                          //> Expand macros with 'test' parameter, with results going to a sub-directory.
  }//if                                                                                                  //>
-return '';                                                                                              //>
+return '';                                                                                              //> Report success.
 }//Go/////////////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
@@ -209,8 +225,8 @@ return r_iChar;                                                                 
 return r_iChar;                                                                                         //> Report position of split.
 }//iSplitCodeComments/////////////////////////////////////////////////////////////////////////////////////>
 //* `); if( 'test' === sMode ){ r_sTest += `                                                            //> TESTS:
- i = iSplitCodeComments(  ); if( i !== -1 ){ console.log('/*_FILE_*/:/*_LINE_*/ Failed ('+ i +')'); }   //> Example of unit test of above function.
- i = iSplitCodeComments(''); if( i !== -1 ){ console.log('/*_FILE_*/:/*_LINE_*/ Failed ('+ i +')'); }   //> This kicks up a fuss during straight execution of this file, so it is commented out.
+// i = iSplitCodeComments(  ); if( i !== -1 ){ console.log('/*_FILE_*/:/*_LINE_*/ Failed ('+ i +')'); } //> Example of unit test of above function.
+// i = iSplitCodeComments(''); if( i !== -1 ){ console.log('/*_FILE_*/:/*_LINE_*/ Failed ('+ i +')'); } //> This kicks up a fuss during straight execution of this file, so it is commented out.
 //* `;} console.log(`                                                                                   //>
                                                                                                         //>
                                                                                                         //>
