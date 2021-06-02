@@ -5,8 +5,8 @@
 //* var                                 r_sTest                 ='';                                    //> Macro execution start: Run this as JavaScript code during macro-expansion phase of Preprocess.js. Variable 'r_sMacro' will eventually be saved in result file.
 //* console.log('/* sMode= '+ sMode +' */');                                                            //> Test variable passed in from tool-chain command.
 //* var                                 sUseStrict              = '"use strict"';                       //> Example variable to inject in output.
-//* var                                 fs                      = require('fs');                        //>
-//* console.log( fs.readFileSync('./Macros.js') );                                                      //>
+//* var                                 fs                      = require('fs');                        //> Example of including contents of
+//* console.log( fs.readFileSync('./Macros.js').toString() );                                           //> another file.
 //* console.log(`                                                                                       //> Start multi-line text string of code:
 /*sUseStrict*/;                                                                                         //> Example of injecting macro value into expanded code.
   /*'var sM = "'+ sMode +'";'*/                                                                         //> Example of injecting macro value (literal text string and value from command line) into expanded code.
@@ -77,17 +77,17 @@ function                                Go(/////////////////////////////////////
 return 'Not a javascript file.';                                                                        //>
  }//if                                                                                                  //>
                                                                                                         //>
- if( 'M' === asARGS[0]   ||   'm' === asARGS[0] ){                                                      //> If request is for Tidy current file in place, Macro expansion, and prettification.
-  Go_Macro( 'main'          ,sPath+'/'            +sFile ,sPath+'/TEMP_MACRO/' +sFile   );              //> Expand macros with results going to a sub-directory.
-  fs.copyFile(               sPath+'/TEMP_MACRO/' +sFile ,sPath+'/TEMP_PRETTY/'+sFile ,(err) => {} );   //>
-  require('child_process').execSync( 'prettier --write '+ sPath+'/TEMP_PRETTY/'+sFile   );              //> Run prettier via a synchronous system call, over-writing existing file.
+ if( 'P' === asARGS[0]   ||   'p' === asARGS[0] ){                                                      //> If request is to process current file, then...
+  Go_Macro( 'main'   ,sPath+'/'             +sFile      ,sPath+'/TEMP_expand/' +sFile   );              //> Expand macros with results going to a sub-directory.
+  fs.copyFile(        sPath+'/TEMP_expand/' +sFile+'_2' ,sPath+'/TEMP_PrettyNotes/'+sFile ,(err)=>{} ); //>
+  require('child_process').execSync( 'prettier --write '+sPath+'/TEMP_PrettyNotes/'+sFile   );          //> Run prettier via a synchronous system call, over-writing existing file.
   // Prettify main repo to TEMP_MAIN                                                                    //>
   // Compare TEMP_MACRO and TEMP_MAIN files.                                                            //>
 return '';                                                                                              //> Report success.
  }//if                                                                                                  //> .
                                                                                                         //>
  if( 'N' === asARGS[0]   ||   'n' === asARGS[0] ){                                                      //> If request is 'Neat', then
-  Go_Tidy(                   sPath+'/'+sFile             ,sPath+'/'            +sFile   );              //> Tidy the code file in place
+  Go_Neatify( sPath+'/'+sFile ,sPath+'/'+sFile );                                                       //> Tidy the code file in place
 return '';                                                                                              //> Report success.
  }//if                                                                                                  //> .
                                                                                                         //>
@@ -98,22 +98,22 @@ return '';                                                                      
 }//Go/////////////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                Go_Tidy(//////////////////////////////////////////////////////////> * Create a tidied version of the given file.
+function                                Go_Neatify(///////////////////////////////////////////////////////> * Create a tidied version of the given file.
                                         a_sPathFileIn                                                   //> * Path and file name of the file to be tidied.
 ,                                       a_sPathFileOut                                                  //> * Path and file name of the output file (re-writes existing).
 ){                                      //////////////////////////////////////////////////////////////////> * Return nothing. Write to result file.
  const                                  sDATA                 = fs.readFileSync(a_sPathFileIn,'UTF-8'); //> read contents of the file
- var                                    sTidy                   = '';                                   //> Pass give value to the macro JS code
+ var                                    sNeat                   = '';                                   //> Pass give value to the macro JS code
  const                                  asLINES                 = sDATA.split("\n");                    //> split the contents by new line
  for( var iLine = 0; iLine < asLINES.length; iLine++ ){                                                 //>
   var                                   sLine                   = asLINES[iLine];                       //>
   if( iLine === asLINES.length-1   &&   '' === sLine ){                                                 //> If on last line, and it is blank, then
  break;//for iLine                                                                                      //> we are done
   }//if                                                                                                 //> .
-  sTidy += Go_Tidy_Line( sLine )+"\n";                                                                  //>
+  sNeat += Go_Tidy_Line( sLine )+"\n";                                                                  //>
  }//for iLine                                                                                           //>
- if( sDATA !== sTidy ){   fs.writeFileSync( a_sPathFileOut ,sTidy );   }                                //> If a change has been made, then write the new contents of the output file.
-}//Go_Tidy////////////////////////////////////////////////////////////////////////////////////////////////>
+ if( sDATA !== sNeat ){   fs.writeFileSync( a_sPathFileOut ,sNeat );   }                                //> If a change has been made, then write the new contents of the output file.
+}//Go_Neatify/////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
 function                                Go_Tidy_Line(/////////////////////////////////////////////////////> * Create a tidied version of the given line.
@@ -140,7 +140,7 @@ function                                Go_Macro(///////////////////////////////
 ,                                       a_sPathFileOut                                                  //> * Path and file name of the output file (re-writes existing).
 ){                                      //////////////////////////////////////////////////////////////////> * Return nothing. Write result files.
  const                                  sDATA                 = fs.readFileSync(a_sPathFileIn,'UTF-8'); //> read contents of the file
- var                                    sTidy                   = 'var sMode="'+ a_sMode +'";' +"\n";   //> Pass given value into the macro-expanded JavaScript.
+ var                                    sNeat                   = 'var sMode="'+ a_sMode +'";' +"\n";   //> Pass given value into the macro-expanded JavaScript.
  var                                    s                       ;                                       //> Short-term utility.
  const                                  asLINES                 = sDATA.split("\n");                    //> split the contents by new line
  var                                    sNewLine       = ' ';                                           //>
@@ -153,15 +153,14 @@ function                                Go_Macro(///////////////////////////////
   if( ' ' === sNewLine ){   if( '/'+'* ' === sLine.slice(0,3) ){ sNewLine = "\n"; }   }                 //> Use new lines when inside a preserved comment.
   else                  {   if( '*'+'/ ' === sLine.slice(0,3) ){ sNewLine = ' ' ; }   }                 //> Outside, ignore new lines (and let Prettier sort it out).
   if( ' ' === sNewLine ){   s = s.trim();   }                                                           //> If ignoring new lines then ignore whitespace too.
-  sTidy += ( '' === s.trim() )?"\n\n" :( s +sNewLine );                                                 //> Preserve blank lines, otherwise put everything on one line and let Prettier sort it out.
-//if( '' !== s.trim() ){   sTidy += Go_Macro_Line( a_sPathFileIn ,iLine ,sLine )+" ";   }               //> Use this line to remove all extraneous whitespace to get truly consistent prettified result.
+  sNeat += ( '' === s.trim() )?"\n\n" :( s +sNewLine );                                                 //> Preserve blank lines, otherwise put everything on one line and let Prettier sort it out.
+//if( '' !== s.trim() ){   sNeat += Go_Macro_Line( a_sPathFileIn ,iLine ,sLine )+" ";   }               //> Use this line to remove all extraneous whitespace to get truly consistent prettified result.
  }//for iLine                                                                                           //>
                                                                                                         //>
- sTidy = sTidy.split('\\').join('\\\\');                                                                //> Work-around escape of backslash at this point (should be done in later step).
- var                                    sPathFileOut_1          = a_sPathFileOut+'_1';                  //> Intermediate file name - append to extension.
- fs.writeFileSync( sPathFileOut_1  ,sTidy );                                                            //> Save this intermediate file.
- var                     r_binary = require('child_process').execSync( 'node "'+ sPathFileOut_1 +'"' ); //> Execute intermediate file as JavaScript using node, saving its console.log output.
- fs.writeFileSync( a_sPathFileOut ,r_binary ,"binary" ,function(err){} );                               //> Save this preprocessed file.
+ sNeat = sNeat.split('\\').join('\\\\');                                                                //> Work-around escape of backslash at this point (should be done in later step).
+ fs.writeFileSync( a_sPathFileOut+'_1'  ,sNeat );                                                       //> Save this intermediate file.
+ var                r_binary = require('child_process').execSync( 'node "'+ a_sPathFileOut+'_1' +'"' ); //> Execute intermediate file as JavaScript using node, saving its console.log output.
+ fs.writeFileSync( a_sPathFileOut+'_2' ,r_binary ,"binary" ,function(err){} );                          //> Save this preprocessed file.
 }//Go_Macro///////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
