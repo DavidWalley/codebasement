@@ -3,15 +3,15 @@
                                                                                                         //>
                                                                                                         //>
 //* var                                 r_sTestCode             ='';                                    //> Macro execution start: Run this as JavaScript code during macro-expansion phase of Preprocess.js. Variable 'r_sMacro' will eventually be saved in result file.
-//* console.log('/* sMode= '+ sMode +' */');                                                            //> Test variable passed in from tool-chain command.
+//* console.log('/* g_sMode= '+ g_sMode +' */');                                                        //> Test variable passed in from tool-chain command.
 //* var                                 sUseStrict              = '"use strict"';                       //> Example variable to inject in output.
 //* var                                 fs                      = require('fs');                        //> Example of including contents of
 //* console.log( fs.readFileSync('./Macros.js').toString() );                                           //> another file.
 //* console.log(`                                                                                       //> Start multi-line text string of code:
 /*sUseStrict*/;                                                                                         //> Example of injecting macro value into expanded code.
-  /*'var sM = "'+ sMode +'";'*/                                                                         //> Example of injecting macro value (literal text string and value from command line) into expanded code.
+  /*'var sM = "'+ g_sMode +'";'*/                                                                       //> Example of injecting macro value (literal text string and value from command line) into expanded code.
                                                                                                         //>
-//* `); if( 'test' === sMode ){ r_sTestCode += `                                                        //> TESTS:
+//* `); if( 'test' === g_sMode ){ r_sTestCode += `                                                      //> TESTS:
 function o(a){ console.log( 'FAILED at '+ a ); }                                                        //> Code convenience - shortens test code lines.
 function sJ(a){ return JSON.stringify(a); }                                                             //> Code convenience.
 var                                     afuncTests               = [];                                  //> Example of line of code to be included in test-mode macro-expanded code. Start a list of test functions from scratch (done this way so test code will do no harm when executing this file ('Preprocess.js') directly, rather that its prettified or compiled version).
@@ -102,17 +102,17 @@ return 'Not a javascript file.';                                                
 return '';                                                                                              //>
   }//if                                                                                                 //>
                                                                                                         //>
-  Go_Macro( 'main' ,sPath               ,sFile     ,sExt    ,sPath+'TEMP_expand/'     ,sFile     ,sExt );//> Expand macros with results going to a sub-directory.
-  fs.copyFile(      sPath+'TEMP_expand/'+sFile+'_2'+sExt    ,sPath+'TEMP_PrettyNotes/'+sFile     +sExt ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
-  require('child_process').execSync( 'prettier --write '    +sPath+'TEMP_PrettyNotes/'+sFile     +sExt );//> run prettier via a synchronous system call, over-writing existing file.
+  Go_Macro( 'main' ,sPath               ,sFile     ,sExt   ,sPath+'TEMP_expand/'     ,sFile     ,sExt); //> Expand macros with results going to a sub-directory.
+  fs.copyFile(      sPath+'TEMP_expand/'+sFile+'_2'+sExt   ,sPath+'TEMP_PrettyNotes/'+sFile     +sExt ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
+  require('child_process').execSync( 'prettier --write '   +sPath+'TEMP_PrettyNotes/'+sFile     +sExt); //> run prettier via a synchronous system call, over-writing existing file.
   // Prettify main repo to TEMP_MAIN                                                                    //>
   // Compare TEMP_MACRO and TEMP_MAIN files.                                                            //>
 return '';                                                                                              //> Report success.
                                                                                                         //>
  case 'T': case 't':                                                                                    //> If request is for Macro expansion for tests, and then running.
-  Go_Macro( 'test' ,sPath               ,sFile     ,sExt    ,sPath+'TEMP_Tests/'      ,sFile     ,sExt );//> Expand macros with 'test' parameter, with results going to a sub-directory.
-  var   binary = require('child_process').execSync('node "'+ sPath+'TEMP_Tests/'+      sFile+'_2'+sExt +'"');//> Execute intermediate file as JavaScript using node, saving its console.log output.
-  fs.writeFileSync( sPath+'TEMP_Tests/results.txt' ,binary ,"binary" ,function(err){} );                //> Save this preprocessed file.
+  Go_Macro( 'test' ,sPath               ,sFile     ,sExt   ,sPath+'TEMP_Tests/'      ,sFile     ,sExt); //> Expand macros with 'test' parameter, with results going to a sub-directory.
+  var     bits = require('child_process').execSync('node "'+sPath+'TEMP_Tests/'+      sFile+'_2'+sExt+'"');//> Execute intermediate file as JavaScript using node, saving its console.log output.
+  fs.writeFileSync( sPath+'TEMP_Tests/results.txt' ,bits ,"binary" ,function(err){} );                  //> Save this preprocessed file.
                                                                                                         //>
 return '';                                                                                              //> Report success.
                                                                                                         //>
@@ -185,20 +185,25 @@ function                                Go_Macro(///////////////////////////////
 ){                                      //////////////////////////////////////////////////////////////////> * Return nothing. Write result files.
  const                                  sPATHfILEiN             = a_sInPath + a_sInFile + a_sInExt;     //>
  const                                  sDATA                   = fs.readFileSync(sPATHfILEiN,'UTF-8'); //> read contents of the file
- var                                    sNeat                   = 'var sMode="'+ a_sMode +'";' +"\n";   //> Pass given value into the macro-expanded JavaScript.
+ var                                    sNeat                   = 'var g_sMode="'+ a_sMode +'";' +"\n"; //> Pass given value into the macro-expanded JavaScript.
  var                                    s                       ;                                       //> Short-term utility.
  const                                  asLINES                 = sDATA.split("\n");                    //> split the contents by new line
- var                                    sNewLine                = ' ';                                  //>
+ var                                    bInCommentBlock         = false;                                //>
  for( var iLine = 0; iLine < asLINES.length; iLine++ ){                                                 //>
   var                                   sLine                   = asLINES[iLine];                       //>
   if( iLine === asLINES.length-1   &&   '' === sLine ){                                                 //> If on last line, and it is blank, then
  break;//for iLine                                                                                      //> we are done
   }//if                                                                                                 //> .
-  s = sGo_Macro_Line( sLine ,sPATHfILEiN,iLine );                                                       //>
-  if( ' ' === sNewLine ){   if( '/'+'* ' === sLine.slice(0,3) ){ sNewLine = "\n"; }   }                 //> Use new lines when inside a preserved comment.
-  else                  {   if( '*'+'/ ' === sLine.slice(0,3) ){ sNewLine = ' ' ; }   }                 //> Outside, ignore new lines (and let Prettier sort it out).
-  if( ' ' === sNewLine ){   s = s.trim();   }                                                           //> If ignoring new lines then ignore whitespace too.
-  sNeat += ( '' === s.trim() )?"\n\n" :( s +sNewLine );                                                 //> Preserve blank lines, otherwise put everything on one line and let Prettier sort it out.
+  s = sGo_Macro_Line( sLine ,sPATHfILEiN,iLine );                                                       //> Process (macro-expand) one line.
+  if( !bInCommentBlock ){   if( '/'+'* ' === sLine.slice(0,3) ){ bInCommentBlock = true ; }   }         //> Use new lines when inside a preserved comment.
+  else                  {   if( '*'+'/ ' === sLine.slice(0,3) ){ bInCommentBlock = false; }   }         //> Outside, ignore new lines (and let Prettier sort it out).
+  if( bInCommentBlock ){                                                                                //> If in a multi-line comment block, then
+   sNeat += s +"\n";                                                                                    //> leave the line as is, and
+ continue;                                                                                              //> this line is done
+  }//if                                                                                                 //> .
+                                                                                                        //> But if NOT in a multi-line comment block, then
+  s = s.trim();                                                                                         //> put everything on one line (and let Prettier sort it out).
+  sNeat += s + (( '' === s )?"\n\n" :' ');                                                              //> Preserve blank lines, otherwise put everything on one line and let Prettier sort it out (but leave multi-line comments alone).
  }//for iLine                                                                                           //>
                                                                                                         //>
  sNeat = sNeat.split('\\').join('\\\\');                                                                //> Work-around escape of backslash at this point (should be done in later step).
@@ -224,9 +229,9 @@ function                                sGo_Macro_Line(/////////////////////////
    if( ' ' === s[0]   ||   ! s.includes('*/') ){                                                        //> If the block comment starts with a space, or there is no end to the block comment then
     sLine += '/*'     + s;                                                                              //> append the part as is, and move on to next part
    }else{                                                                                               //> Otherwise,                                                             //> .
-    if(      '_FILE_*/' === s.slice(0 ,8) ){ sLine += a_sPathFile                   + s.slice(8); }     //> Replace magic constant.
-    else if( '_LINE_*/' === s.slice(0 ,8) ){ sLine +=                   (a_iLine+1) + s.slice(8); }     //> Replace magic constant.
-    else if( '_AT_*/'   === s.slice(0 ,6) ){ sLine += a_sPathFile +':'+ (a_iLine+1) + s.slice(6); }     //> Replace magic constant.
+    if(      '_FILE_*/' === s.slice(0 ,8) ){ sLine += a_sPathFile                   + s.slice(8); }     //> Replace magic constant - current file name.
+    else if( '_LINE_*/' === s.slice(0 ,8) ){ sLine +=                   (a_iLine+1) + s.slice(8); }     //> Replace magic constant - current line number.
+    else if( '_HERE_*/' === s.slice(0 ,8) ){ sLine += a_sPathFile +':'+ (a_iLine+1) + s.slice(8); }     //> Replace magic constant - file and line.
     else                                   { sLine += '\u0060+' + s.replace('*'+'/' ,'+\u0060') ; }     //> immediate replacement with `+( ... )+` (where ... is the comment contents).
  }}}//if//for i//else                                                                                   //>
                                                                                                         //>
@@ -268,11 +273,11 @@ return r_iChar;                                                                 
  }//for r_iChar                                                                                         //> .
 return r_iChar;                                                                                         //> Report position of split.
 }//iSplitCodeComments/////////////////////////////////////////////////////////////////////////////////////>
-//* `); if( 'test' === sMode ){ r_sTestCode += `                                                        //> TESTS:
+//* `); if( 'test' === g_sMode ){ r_sTestCode += `                                                      //> TESTS:
 afuncTests.push( function(){                                                                            //>
   var                                   i                       ;                                       //>
-  i = iSplitCodeComments(  ); if( i !== -1 ){ o('/*_AT_*/ ('+ i +')'); }                                //> Example of unit test of above function.
-  i = iSplitCodeComments(''); if( i !== -2 ){ o('/*_AT_*/ ('+ i +')'); }                                //> This kicks up a fuss during straight execution of this file, so it is commented out.
+  i = iSplitCodeComments(  ); if( i !== -1 ){ o('/*_HERE_*/ ('+ i +')'); }                              //> Example of unit test of above function.
+  i = iSplitCodeComments(''); if( i !== -2 ){ o('/*_HERE_*/ ('+ i +')'); }                              //> This kicks up a fuss during straight execution of this file, so it is commented out.
 });                                                                                                     //>
 //* `;} console.log(`                                                                                   //>
                                                                                                         //>
@@ -304,19 +309,15 @@ function                                avGo_ParsePathFileName(/////////////////
  if( '' !== r_sExt ){ r_sExt = '.'+ r_sExt; }                                                           //>
  r_sFile = as.join('.');                                                                                //>
                                                                                                         //>
-return  [ r_sRoot                                                                                       //>
-        , r_sRepo                                                                                       //>
-        , r_sFolder                                                                                     //>
-        , r_sFile                                                                                       //>
-        , r_sExt                                                                                        //>
-        ];                                                                                              //>
+return  [ r_sRoot ,r_sRepo ,r_sFolder ,r_sFile ,r_sExt ];                                               //>
 }//avGo_ParsePathFileName/////////////////////////////////////////////////////////////////////////////////>
-//* `); if( 'test' === sMode ){ r_sTestCode += `                                                        //> TESTS:
+//* `); if( 'test' === g_sMode ){ r_sTestCode += `                                                      //> TESTS:
 afuncTests.push( function(){                                                                            //>
   var                                   s                       ;                                       //>
-  s = sJ( avGo_ParsePathFileName('C:/$/testing.js'                        ) ); if( s!=='["C:/$/","","","testing",".js"]'                         ){o( '/*_AT_*/ ('+ s +')'); }//>
-  s = sJ( avGo_ParsePathFileName('C:/$/0mf/repo_MAIN/testing.js'          ) ); if( s!=='["C:/$/0mf/","repo_MAIN/","","testing",".js"]'           ){o( '/*_AT_*/ ('+ s +')'); }//>
-  s = sJ( avGo_ParsePathFileName('C:/$/0mf/repo_NOTES/src/more/testing.js') ); if( s!=='["C:/$/0mf/","repo_NOTES/","src/more/","testing",".js"]' ){o( '/*_AT_*/ ('+ s +')'); }//>
+  s = sJ( avGo_ParsePathFileName('C:/$/testing.js'                        ) ); if( s!=='["C:/$/","","","testing",".js"]'                         ){o( '/*_HERE_*/ ('+ s +')'); }//>
+  s = sJ( avGo_ParsePathFileName('C:\\$\\testing.js'                      ) ); if( s!=='["C:/$/","","","testing",".js"]'                         ){o( '/*_HERE_*/ ('+ s +')'); }//>
+  s = sJ( avGo_ParsePathFileName('C:/$/0mf/repo_MAIN/testing.js'          ) ); if( s!=='["C:/$/0mf/","repo_MAIN/","","testing",".js"]'           ){o( '/*_HERE_*/ ('+ s +')'); }//>
+  s = sJ( avGo_ParsePathFileName('C:/$/0mf/repo_NOTES/src/more/testing.js') ); if( s!=='["C:/$/0mf/","repo_NOTES/","src/more/","testing",".js"]' ){o( '/*_HERE_*/ ('+ s +')'); }//>
 });                                                                                                     //>
 //* `; var sIgnoreTheFollowingInTestMode = `                                                            //> If testing, then ignore the following...
  var                                    r_s                     = sGo();                                //> If running this file as is, then execute the main function of this file, and
