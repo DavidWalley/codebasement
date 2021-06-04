@@ -2,7 +2,7 @@
 // (c)2021 David C. Walley                                                                              //>
                                                                                                         //>
                                                                                                         //>
-//* var                                 r_sTest                 ='';                                    //> Macro execution start: Run this as JavaScript code during macro-expansion phase of Preprocess.js. Variable 'r_sMacro' will eventually be saved in result file.
+//* var                                 r_sTestCode             ='';                                    //> Macro execution start: Run this as JavaScript code during macro-expansion phase of Preprocess.js. Variable 'r_sMacro' will eventually be saved in result file.
 //* console.log('/* sMode= '+ sMode +' */');                                                            //> Test variable passed in from tool-chain command.
 //* var                                 sUseStrict              = '"use strict"';                       //> Example variable to inject in output.
 //* var                                 fs                      = require('fs');                        //> Example of including contents of
@@ -10,6 +10,12 @@
 //* console.log(`                                                                                       //> Start multi-line text string of code:
 /*sUseStrict*/;                                                                                         //> Example of injecting macro value into expanded code.
   /*'var sM = "'+ sMode +'";'*/                                                                         //> Example of injecting macro value (literal text string and value from command line) into expanded code.
+                                                                                                        //>
+//* `); if( 'test' === sMode ){ r_sTestCode += `                                                        //> TESTS:
+function o(a){ console.log( 'FAILED at '+ a ); }                                                        //> Code convenience - shortens test code lines.
+function sJ(a){ return JSON.stringify(a); }                                                             //> Code convenience.
+var                                     afuncTests               = [];                                  //> Example of line of code to be included in test-mode macro-expanded code. Start a list of test functions from scratch (done this way so test code will do no harm when executing this file ('Preprocess.js') directly, rather that its prettified or compiled version).
+//* `;} console.log(`                                                                                   //>
                                                                                                         //>
 /*                                                                                                      //> Example of comment that should survive prettier:
 Tidy:                                                                                                   //>
@@ -37,13 +43,11 @@ Macro language and expansion:                                                   
                                                                                                         //>
 const                                   fs                      = require('fs');                        //> Node's standard file system.
                                                                                                         //>
-                                                                                                        //>
-const                                   sPATHrOOT               = 'c:/0mf';                             //>
-// DIRECTORY SETUP (for Mindfuel):                                                                      //>
+// DIRECTORY SETUP (example, for Mindfuel):                                                             //>
 //  c:/$/Code/codebasement/ - Root of preprocessing code.                                               //>
 //  c:/0mf/                 - Mindfuel rescue project root.                                             //>
-//        /Main             - copy of main branch of (Mindfuel) source code.                            //>
-//        /Notes            - Notated base files - copies of source code directories and files, created as needed, notated and with macors.//>
+//        /repo_MAIN            - copy of main branch of (Mindfuel) source code.                        //>
+//        /repo_NOTES            - Notated base files - copies of source code directories and files, created as needed, notated and with macors.//>
 //        /TEMP_expand      - Intermediate results of expanding macros.                                 //>
 //        /TEMP_PrettyMain  - prettified main source code directories and files.                        //>
 //        /TEMP_PrettyNotes - Result of prettifying macro expanded notated base files.                  //>
@@ -55,7 +59,7 @@ const                                   sPATHrOOT               = 'c:/0mf';     
 // +----------------------+   |                                                                         //>
 // | Source codebase repo |---^                                      Notes                              //> Source codebase repo, with extensive comments, macros
 // |New version with notes|---> macro expand 'test' -->              TEMP_Tests --> execute tests       //> Code ready for test execution.
-// |and macros.           |---> macro expand 'main' -->              TEMP_expand                        //> Macro-expanded code.
+// |and macros.           |---> macro expand 'main' -->              TEMP_expand                        //> Macro-expanded code in *.js_1 and *.js_2.
 // +----------------------+                         --> prettier --> TEMP_PrettyNotes  <---\            //> Prettified notes code. If different from MAIN/TEMP_PRETTY then edit NOTES.
 //                                                                                         compare      //> Use compare app or plug-in, and update NOTES source file to stay in sync?
 //               >------------------------------------> prettier --> TEMP_Pretty       <---/            //> Prettified main code
@@ -64,59 +68,95 @@ const                                   sPATHrOOT               = 'c:/0mf';     
 //  | Production code   |                                            Main                               //> Main repo source code - used for production - may not be prettified.
 //  | (normal git repo) |                                                                               //> MAIN/TEMP_PRETTY
 //  +-------------------+                                                                               //>
-function                                Go(///////////////////////////////////////////////////////////////> Main execution of this file starts here.
                                                                                                         //>
+                                                                                                        //>
+const                                   sPATHrOOT               = 'c:/0mf';                             //>
+                                                                                                        //>
+                                                                                                        //>
+function                                sGo(//////////////////////////////////////////////////////////////> Main execution of this file starts here.
 ){                                      //////////////////////////////////////////////////////////////////>
- const                                  asARGS                  = process.argv.slice(2);                //> Ignore first 2 arguments (node and path to this file).
- console.log( asARGS );                                                                                 //> DEBUG
- var                                    asPath                  = asARGS[1].split(/[\\\/]/);            //>
- var                                    sFile                   = asPath.pop();                         //> https://stackoverflow.com/questions/423376/how-to-get-the-file-name-from-a-full-path-using-javascript
- var                                    sPath                   = asPath.join('/');                     //>
+ var                                    sCommand                = process.argv[2][0];                   //> First letter of first parameter is the action to be taken, as detailed below.
+ var                                    sPath                   = process.argv[3].split('\\').join('/');//> Convert Windows to UNIX path delimiters.
+ // sRoot                   sRepo        sFolder                                sFile         sExt      //>
+ // C:\$\Code\codebasement                                                      Preprocess    .js       //>
+ // C:\0mf\java-legacy      repo_MAIN    src\main\webapp\scripts\app\dialogs    inputDialog   .js       //>
+ // C:\0mf\java-legacy      repo_NOTES   src\main\webapp\scripts\app\dialogs    inputDialog   .js       //>
+ var                                    asPath            = avGo_ParsePathFileName( process.argv[3] );  //>
+ var                                    sRoot                   = asPath[0];                            //>
+ var                                    sRepo                   = asPath[1];                            //>
+ var                                    sFolder                 = asPath[2];                            //>
+ var                                    sFile                   = asPath[3];                            //>
+ var                                    sExt                    = asPath[4];                            //>
+ if( sExt !== '.js' ){                                                                                  //> If not a javascript file, then
+return 'Not a javascript file.';                                                                        //> fail gracefully
+ }//if                                                                                                  //> .
                                                                                                         //>
- if( sFile.slice(-3) !== '.js' ){                                                                       //>
-return 'Not a javascript file.';                                                                        //>
- }//if                                                                                                  //>
+ var                                    sPath                   = sRoot + sRepo;                        //>
                                                                                                         //>
- if( 'P' === asARGS[0]   ||   'p' === asARGS[0] ){                                                      //> If request is to process current file, then...
-  Go_Macro( 'main'   ,sPath+'/'             +sFile      ,sPath+'/TEMP_expand/' +sFile   );              //> Expand macros with results going to a sub-directory.
-  fs.copyFile(        sPath+'/TEMP_expand/' +sFile+'_2' ,sPath+'/TEMP_PrettyNotes/'+sFile ,(err)=>{} ); //>
-  require('child_process').execSync( 'prettier --write '+sPath+'/TEMP_PrettyNotes/'+sFile   );          //> Run prettier via a synchronous system call, over-writing existing file.
+ switch( sCommand ){                                                                                    //>
+ case 'P': case 'p':                                                                                    //> If request is to process current file, then...
+  console.log('--------- Process');                                                                     //>
+  console.log('--------- Process');                                                                     //>
+  if( 'repo_MAIN/' === sRepo ){                                                                         //>
+   Go_SwitchToNotes( sRoot ,sRepo ,sFolder ,sFile ,sExt );                                              //> Main:If Notes version does not exist yet, then create and line-number it now. Open in notepad++?
+return '';                                                                                              //>
+  }//if                                                                                                 //>
+                                                                                                        //>
+  Go_Macro( 'main' ,sPath               ,sFile     ,sExt    ,sPath+'TEMP_expand/'     ,sFile     ,sExt );//> Expand macros with results going to a sub-directory.
+  fs.copyFile(      sPath+'TEMP_expand/'+sFile+'_2'+sExt    ,sPath+'TEMP_PrettyNotes/'+sFile     +sExt ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
+  require('child_process').execSync( 'prettier --write '    +sPath+'TEMP_PrettyNotes/'+sFile     +sExt );//> run prettier via a synchronous system call, over-writing existing file.
   // Prettify main repo to TEMP_MAIN                                                                    //>
   // Compare TEMP_MACRO and TEMP_MAIN files.                                                            //>
 return '';                                                                                              //> Report success.
- }//if                                                                                                  //> .
                                                                                                         //>
- if( 'N' === asARGS[0]   ||   'n' === asARGS[0] ){                                                      //> If request is 'Neat', then
-  Go_Neatify( sPath+'/'+sFile ,sPath+'/'+sFile );                                                       //> Tidy the code file in place
+ case 'T': case 't':                                                                                    //> If request is for Macro expansion for tests, and then running.
+  Go_Macro( 'test' ,sPath               ,sFile     ,sExt    ,sPath+'TEMP_Tests/'      ,sFile     ,sExt );//> Expand macros with 'test' parameter, with results going to a sub-directory.
+  var   binary = require('child_process').execSync('node "'+ sPath+'TEMP_Tests/'+      sFile+'_2'+sExt +'"');//> Execute intermediate file as JavaScript using node, saving its console.log output.
+  fs.writeFileSync( sPath+'TEMP_Tests/results.txt' ,binary ,"binary" ,function(err){} );                //> Save this preprocessed file.
+                                                                                                        //>
 return '';                                                                                              //> Report success.
- }//if                                                                                                  //> .
                                                                                                         //>
- if( 'T' === asARGS[0]   ||   't' === asARGS[0] ){                                                      //> If request is for Macro expansion for tests, and then running.
-  Go_Macro( 'test'          ,sPath+'/'+sFile ,sPath+'/TEMP_TEST/'  +sFile   );                          //> Expand macros with 'test' parameter, with results going to a sub-directory.
- }//if                                                                                                  //>
+ case 'N': case 'n':                                                                                    //> If request is for Macro expansion for tests, and then running.
+  console.log('--------- Neatify');                                                                     //>
+  console.log('--------- Neatify');                                                                     //>
+  console.log( sPath + sFolder + sFile + sExt );                                                        //>
+  Go_Neat(     sPath + sFolder + sFile + sExt  ,sPath + sFolder + sFile + sExt );                       //> Neatify the base file in place.
 return '';                                                                                              //> Report success.
-}//Go/////////////////////////////////////////////////////////////////////////////////////////////////////>
+ }//switch                                                                                              //> Otherwise:
+return 'Command "'+ sCommand +'" not recognized.';                                                      //> Report failure
+}//sGo////////////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                Go_Neatify(///////////////////////////////////////////////////////> * Create a tidied version of the given file.
+function                                Go_SwitchToNotes(/////////////////////////////////////////////////> Main:If Notes version does not exist yet, then create and line-number it now. Open in notepad++?
+                                        a_sRoot                                                         //>
+,                                       a_sRepo                                                         //>
+,                                       a_sFolder                                                       //>
+,                                       a_sFile                                                         //>
+,                                       a_sExt                                                          //>
+){                                      //////////////////////////////////////////////////////////////////>
+                                                                                                        //>
+}//Go_ SwitchToNotes//////////////////////////////////////////////////////////////////////////////////////>
+                                                                                                        //>
+                                                                                                        //>
+function                                Go_Neat(//////////////////////////////////////////////////////////> * Create a tidied version of the given file.
                                         a_sPathFileIn                                                   //> * Path and file name of the file to be tidied.
 ,                                       a_sPathFileOut                                                  //> * Path and file name of the output file (re-writes existing).
 ){                                      //////////////////////////////////////////////////////////////////> * Return nothing. Write to result file.
- const                                  sDATA                 = fs.readFileSync(a_sPathFileIn,'UTF-8'); //> read contents of the file
- var                                    sNeat                   = '';                                   //> Pass give value to the macro JS code
- const                                  asLINES                 = sDATA.split("\n");                    //> split the contents by new line
+ const                                  sDATA                 = fs.readFileSync(a_sPathFileIn,'UTF-8'); //> Read contents of the file.
+ var                                    sNeat                   = '';                                   //> Pass give value to the macro JS code.
+ const                                  asLINES                 = sDATA.split("\n");                    //> Split the contents by newlines.
  for( var iLine = 0; iLine < asLINES.length; iLine++ ){                                                 //>
   var                                   sLine                   = asLINES[iLine];                       //>
   if( iLine === asLINES.length-1   &&   '' === sLine ){                                                 //> If on last line, and it is blank, then
  break;//for iLine                                                                                      //> we are done
   }//if                                                                                                 //> .
-  sNeat += Go_Tidy_Line( sLine )+"\n";                                                                  //>
+  sNeat += sGo_Neat_Line( sLine )+"\n";                                                                 //>
  }//for iLine                                                                                           //>
  if( sDATA !== sNeat ){   fs.writeFileSync( a_sPathFileOut ,sNeat );   }                                //> If a change has been made, then write the new contents of the output file.
-}//Go_Neatify/////////////////////////////////////////////////////////////////////////////////////////////>
+}//Go_Neat////////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                Go_Tidy_Line(/////////////////////////////////////////////////////> * Create a tidied version of the given line.
+function                                sGo_Neat_Line(////////////////////////////////////////////////////> * Create a tidied version of the given line.
                                         a_sLine                                                         //> * Source code line.
 ){                                      //////////////////////////////////////////////////////////////////> * Return '' on success, or an error message.
  var                                    r_s                     = '';                                   //>
@@ -131,43 +171,47 @@ return sCode.trimEnd().padEnd(iSLIDEtO     ) +'//>'+ sComments;                 
                                                                                                         //> Otherwise
  while( iSLIDEtO < sCode.length   &&   '/' === sCode.slice(-1) ){ sCode = sCode.slice(0,-1); }          //> remove all extra slashes beyond the end of code portion of line.
 return sCode.padEnd(          iSLIDEtO ,'/') +'//>'+ sComments;                                         //> Pad the code with additional slashes after the existing streak.
-}//Go_Tidy_Line///////////////////////////////////////////////////////////////////////////////////////////>
+}//sGo_Neat_Line//////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
 function                                Go_Macro(/////////////////////////////////////////////////////////> * Create a tidied version of the given file.
                                         a_sMode                                                         //> * Process variation, e.g., 'tidy' or 'macro'
-,                                       a_sPathFileIn                                                   //> * Path and file name of the file to be tidied.
-,                                       a_sPathFileOut                                                  //> * Path and file name of the output file (re-writes existing).
+,                                       a_sInPath                                                       //> * Path,
+,                                       a_sInFile                                                       //> * file name, and
+,                                       a_sInExt                                                        //> * extension of the file to be tidied.
+,                                       a_sOutPath                                                      //> * Path,
+,                                       a_sOutFile                                                      //> * file name, and
+,                                       a_sOutExt                                                       //> * extension of the result (intermediate) files.
 ){                                      //////////////////////////////////////////////////////////////////> * Return nothing. Write result files.
- const                                  sDATA                 = fs.readFileSync(a_sPathFileIn,'UTF-8'); //> read contents of the file
+ const                                  sPATHfILEiN             = a_sInPath + a_sInFile + a_sInExt;     //>
+ const                                  sDATA                   = fs.readFileSync(sPATHfILEiN,'UTF-8'); //> read contents of the file
  var                                    sNeat                   = 'var sMode="'+ a_sMode +'";' +"\n";   //> Pass given value into the macro-expanded JavaScript.
  var                                    s                       ;                                       //> Short-term utility.
  const                                  asLINES                 = sDATA.split("\n");                    //> split the contents by new line
- var                                    sNewLine       = ' ';                                           //>
+ var                                    sNewLine                = ' ';                                  //>
  for( var iLine = 0; iLine < asLINES.length; iLine++ ){                                                 //>
   var                                   sLine                   = asLINES[iLine];                       //>
   if( iLine === asLINES.length-1   &&   '' === sLine ){                                                 //> If on last line, and it is blank, then
  break;//for iLine                                                                                      //> we are done
   }//if                                                                                                 //> .
-  s = Go_Macro_Line( a_sPathFileIn ,iLine ,sLine );                                                     //>
+  s = sGo_Macro_Line( sLine ,sPATHfILEiN,iLine );                                                       //>
   if( ' ' === sNewLine ){   if( '/'+'* ' === sLine.slice(0,3) ){ sNewLine = "\n"; }   }                 //> Use new lines when inside a preserved comment.
   else                  {   if( '*'+'/ ' === sLine.slice(0,3) ){ sNewLine = ' ' ; }   }                 //> Outside, ignore new lines (and let Prettier sort it out).
   if( ' ' === sNewLine ){   s = s.trim();   }                                                           //> If ignoring new lines then ignore whitespace too.
   sNeat += ( '' === s.trim() )?"\n\n" :( s +sNewLine );                                                 //> Preserve blank lines, otherwise put everything on one line and let Prettier sort it out.
-//if( '' !== s.trim() ){   sNeat += Go_Macro_Line( a_sPathFileIn ,iLine ,sLine )+" ";   }               //> Use this line to remove all extraneous whitespace to get truly consistent prettified result.
  }//for iLine                                                                                           //>
                                                                                                         //>
  sNeat = sNeat.split('\\').join('\\\\');                                                                //> Work-around escape of backslash at this point (should be done in later step).
- fs.writeFileSync( a_sPathFileOut+'_1'  ,sNeat );                                                       //> Save this intermediate file.
- var                r_binary = require('child_process').execSync( 'node "'+ a_sPathFileOut+'_1' +'"' ); //> Execute intermediate file as JavaScript using node, saving its console.log output.
- fs.writeFileSync( a_sPathFileOut+'_2' ,r_binary ,"binary" ,function(err){} );                          //> Save this preprocessed file.
+ fs.writeFileSync(                                        a_sOutPath+a_sOutFile+'_1'+a_sOutExt ,sNeat );//> Save this intermediate file.
+ var binary = require('child_process').execSync('node "'+ a_sOutPath+a_sOutFile+'_1'+a_sOutExt +'"');   //> Execute intermediate file as JavaScript using node, saving its console.log output.
+ fs.writeFileSync( a_sOutPath+a_sOutFile+'_2'+a_sOutExt ,binary ,"binary" ,function(err){} );           //> Save this preprocessed file.
 }//Go_Macro///////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                Go_Macro_Line(////////////////////////////////////////////////////> * Create a macro expanded version of the given line.
-                                        a_sPathFile                                                     //> * Path and file name of the file to be tidied.
+function                                sGo_Macro_Line(///////////////////////////////////////////////////> * Create a macro expanded version of the given line.
+                                        a_sLine                                                         //> * Source code line.
+,                                       a_sPathFile                                                     //> * Path and file name of the file to be tidied.
 ,                                       a_iLine                                                         //> * Source code line number.
-,                                       a_sLine                                                         //> * Source code line.
 ){                                      //////////////////////////////////////////////////////////////////> * Return a text string.
  var                                    r_s                     = '';                                   //>
  var                                    sLine                   = a_sLine +'   ';                       //>
@@ -180,15 +224,16 @@ function                                Go_Macro_Line(//////////////////////////
    if( ' ' === s[0]   ||   ! s.includes('*/') ){                                                        //> If the block comment starts with a space, or there is no end to the block comment then
     sLine += '/*'     + s;                                                                              //> append the part as is, and move on to next part
    }else{                                                                                               //> Otherwise,                                                             //> .
-    if(      '_FILE_*/' === s.slice(0 ,8) ){ sLine += a_sPathFile + s.slice(8)                   ; }    //> Replace magic constant.
-    else if( '_LINE_*/' === s.slice(0 ,8) ){ sLine += (a_iLine+1) + s.slice(8)                   ; }    //> Replace magic constant.
-    else                                   { sLine += '\u0060+'   + s.replace('*'+'/' ,'+\u0060'); }    //> immediate replacement with `+( ... )+` (where ... is the comment contents).
+    if(      '_FILE_*/' === s.slice(0 ,8) ){ sLine += a_sPathFile                   + s.slice(8); }     //> Replace magic constant.
+    else if( '_LINE_*/' === s.slice(0 ,8) ){ sLine +=                   (a_iLine+1) + s.slice(8); }     //> Replace magic constant.
+    else if( '_AT_*/'   === s.slice(0 ,6) ){ sLine += a_sPathFile +':'+ (a_iLine+1) + s.slice(6); }     //> Replace magic constant.
+    else                                   { sLine += '\u0060+' + s.replace('*'+'/' ,'+\u0060') ; }     //> immediate replacement with `+( ... )+` (where ... is the comment contents).
  }}}//if//for i//else                                                                                   //>
                                                                                                         //>
  var                                    iChar                = iSplitCodeComments('strip' ,sLine +'//');//> Find split point between code and comments.
  var                                    sCode                = sLine.slice(0 ,iChar-1);                 //>
 return sCode.trimEnd();                                                                                 //>
-}//Go_Macro_Line//////////////////////////////////////////////////////////////////////////////////////////>
+}//sGo_Macro_Line/////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
 function                                iSplitCodeComments(///////////////////////////////////////////////> * Find split point between code and comments.
@@ -223,12 +268,62 @@ return r_iChar;                                                                 
  }//for r_iChar                                                                                         //> .
 return r_iChar;                                                                                         //> Report position of split.
 }//iSplitCodeComments/////////////////////////////////////////////////////////////////////////////////////>
-//* `); if( 'test' === sMode ){ r_sTest += `                                                            //> TESTS:
-// i = iSplitCodeComments(  ); if( i !== -1 ){ console.log('/*_FILE_*/:/*_LINE_*/ Failed ('+ i +')'); } //> Example of unit test of above function.
-// i = iSplitCodeComments(''); if( i !== -1 ){ console.log('/*_FILE_*/:/*_LINE_*/ Failed ('+ i +')'); } //> This kicks up a fuss during straight execution of this file, so it is commented out.
+//* `); if( 'test' === sMode ){ r_sTestCode += `                                                        //> TESTS:
+afuncTests.push( function(){                                                                            //>
+  var                                   i                       ;                                       //>
+  i = iSplitCodeComments(  ); if( i !== -1 ){ o('/*_AT_*/ ('+ i +')'); }                                //> Example of unit test of above function.
+  i = iSplitCodeComments(''); if( i !== -2 ){ o('/*_AT_*/ ('+ i +')'); }                                //> This kicks up a fuss during straight execution of this file, so it is commented out.
+});                                                                                                     //>
 //* `;} console.log(`                                                                                   //>
                                                                                                         //>
                                                                                                         //>
-Go();                                                                                                   //>
+function                                avGo_ParsePathFileName(///////////////////////////////////////////>
+                                        a_sPathFile                                                     //>
+){                                      //////////////////////////////////////////////////////////////////>
+ var                                    asPath                  = a_sPathFile.split(/[\\\/]/);          //> Split on slashes or backslashes.
+ var                                    n                       = asPath.length - 1;                    //>
                                                                                                         //>
-//* `); if( '' !== r_sTest ){ console.log( "//Tests: "); } console.log(r_sTest);                        //> End of file.
+ var                                    r_sRoot                 = '';                                   //> path to directory containing expected sub-directory.
+ var                                    r_sRepo                 = '';                                   //> Directory name if expected sub-directory seen.
+ var                                    r_sFolder               = '';                                   //>
+ var                                    r_sFile                 = asPath[n];                            //> Split base file into name, and...
+                                                                                                        //>
+ var                                    s                       ;                                       //>
+ var                                    i                       = 0;                                    //>
+ for( i = 0; i < n; i++ ){   s = asPath[i];                                                             //> Split off root:
+  if( 'repo_MAIN' === s   ||   'repo_NOTES' === s ){                                                    //> If either of these is seen in the path, then assume they are in our standard duplicate repo directory structure.
+   r_sRepo = s +'/';                                                                                    //>
+   for( i++; i < n; i++ ){ r_sFolder += asPath[i] +'/'; }                                               //>
+ break;                                                                                                 //>
+  }//if                                                                                                 //>
+  r_sRoot += s +'/';                                                                                    //>
+ }//for i                                                                                               //>
+                                                                                                        //>
+ var                                    as                      = r_sFile.split('.');                   //>
+ var                                    r_sExt                  = as.pop();                             //>
+ if( '' !== r_sExt ){ r_sExt = '.'+ r_sExt; }                                                           //>
+ r_sFile = as.join('.');                                                                                //>
+                                                                                                        //>
+return  [ r_sRoot                                                                                       //>
+        , r_sRepo                                                                                       //>
+        , r_sFolder                                                                                     //>
+        , r_sFile                                                                                       //>
+        , r_sExt                                                                                        //>
+        ];                                                                                              //>
+}//avGo_ParsePathFileName/////////////////////////////////////////////////////////////////////////////////>
+//* `); if( 'test' === sMode ){ r_sTestCode += `                                                        //> TESTS:
+afuncTests.push( function(){                                                                            //>
+  var                                   s                       ;                                       //>
+  s = sJ( avGo_ParsePathFileName('C:/$/testing.js'                        ) ); if( s!=='["C:/$/","","","testing",".js"]'                         ){o( '/*_AT_*/ ('+ s +')'); }//>
+  s = sJ( avGo_ParsePathFileName('C:/$/0mf/repo_MAIN/testing.js'          ) ); if( s!=='["C:/$/0mf/","repo_MAIN/","","testing",".js"]'           ){o( '/*_AT_*/ ('+ s +')'); }//>
+  s = sJ( avGo_ParsePathFileName('C:/$/0mf/repo_NOTES/src/more/testing.js') ); if( s!=='["C:/$/0mf/","repo_NOTES/","src/more/","testing",".js"]' ){o( '/*_AT_*/ ('+ s +')'); }//>
+});                                                                                                     //>
+//* `; var sIgnoreTheFollowingInTestMode = `                                                            //> If testing, then ignore the following...
+ var                                    r_s                     = sGo();                                //> If running this file as is, then execute the main function of this file, and
+ console.log( r_s );                                                                                    //> display result.
+//* `;                                                                                                  //>
+//*  if( '' !== r_sTestCode ){                                                                          //>
+//*   console.log("//Tests: ");                                                                         //>
+//*   console.log(r_sTestCode);                                                                         //>
+//*   console.log( 'console.log("---Start tests"); for( let f of afuncTests ){ f(); } console.log("---End."); ' );//>
+//* }}                                                                                                  //> End of file.
