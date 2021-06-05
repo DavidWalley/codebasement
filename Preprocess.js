@@ -101,7 +101,6 @@ return 'Not a javascript file.';                                                
    Go_SwitchToNotes( sRoot ,sRepo ,sFolder ,sFile ,sExt );                                              //> Main:If Notes version does not exist yet, then create and line-number it now. Open in notepad++?
 return '';                                                                                              //>
   }//if                                                                                                 //>
-                                                                                                        //>
   Go_Macro( 'main' ,sPath               ,sFile     ,sExt   ,sPath+'TEMP_expand/'     ,sFile     ,sExt); //> Expand macros with results going to a sub-directory.
   fs.copyFile(      sPath+'TEMP_expand/'+sFile+'_2'+sExt   ,sPath+'TEMP_PrettyNotes/'+sFile     +sExt ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
   require('child_process').execSync( 'prettier --write '   +sPath+'TEMP_PrettyNotes/'+sFile     +sExt); //> run prettier via a synchronous system call, over-writing existing file.
@@ -109,17 +108,19 @@ return '';                                                                      
   // Compare TEMP_MACRO and TEMP_MAIN files.                                                            //>
 return '';                                                                                              //> Report success.
                                                                                                         //>
+                                                                                                        //>
  case 'T': case 't':                                                                                    //> If request is for Macro expansion for tests, and then running.
   Go_Macro( 'test' ,sPath               ,sFile     ,sExt   ,sPath+'TEMP_Tests/'      ,sFile     ,sExt); //> Expand macros with 'test' parameter, with results going to a sub-directory.
   var     bits = require('child_process').execSync('node "'+sPath+'TEMP_Tests/'+      sFile+'_2'+sExt+'"');//> Execute intermediate file as JavaScript using node, saving its console.log output.
   fs.writeFileSync( sPath+'TEMP_Tests/results.txt' ,bits ,"binary" ,function(err){} );                  //> Save this preprocessed file.
-                                                                                                        //>
 return '';                                                                                              //> Report success.
+                                                                                                        //>
                                                                                                         //>
  case 'N': case 'n':                                                                                    //> If request is for Macro expansion for tests, and then running.
   console.log('--------- Neatify');                                                                     //>
   console.log('--------- Neatify');                                                                     //>
   console.log( sPath + sFolder + sFile + sExt );                                                        //>
+  Go_Snippets( sPath + sFolder + sFile + sExt  ,sPath + sFolder + sFile + sExt );                       //> Neatify the base file in place.
   Go_Neat(     sPath + sFolder + sFile + sExt  ,sPath + sFolder + sFile + sExt );                       //> Neatify the base file in place.
 return '';                                                                                              //> Report success.
  }//switch                                                                                              //> Otherwise:
@@ -136,6 +137,61 @@ function                                Go_SwitchToNotes(///////////////////////
 ){                                      //////////////////////////////////////////////////////////////////>
                                                                                                         //>
 }//Go_ SwitchToNotes//////////////////////////////////////////////////////////////////////////////////////>
+                                                                                                        //>
+                                                                                                        //>
+function                                Go_Snippets(//////////////////////////////////////////////////////> * Expand snippets throughout the file
+                                        a_sPathFileIn                                                   //> * Path and file name of the file to be tidied.
+,                                       a_sPathFileOut                                                  //> * Path and file name of the output file (re-writes existing).
+){                                      //////////////////////////////////////////////////////////////////> * Return nothing. Write to result file.
+ const                                  sDATA                 = fs.readFileSync(a_sPathFileIn,'UTF-8'); //> Read contents of the file.
+ var                                    r_s                     = '';                                   //> Pass give value to the macro JS code.
+ const                                  asLINES                 = sDATA.split("\n");                    //> Split the contents by newlines.
+ for( var iLine = 0; iLine < asLINES.length; iLine++ ){                                                 //>
+  var                                   sLine                   = asLINES[iLine];                       //>
+  if( iLine === asLINES.length-1   &&   '' === sLine ){                                                 //> If on last line, and it is blank, then
+ break;//for iLine                                                                                      //> we are done
+  }//if                                                                                                 //> .
+  r_s += sGo_Snippets_Line( sLine )+"\n";                                                               //>
+ }//for iLine                                                                                           //>
+ if( sDATA !== r_s ){   fs.writeFileSync( a_sPathFileOut ,r_s );   }                                    //> If a change has been made, then write the new contents of the output file.
+}//Go_Snippets////////////////////////////////////////////////////////////////////////////////////////////>
+                                                                                                        //>
+                                                                                                        //>
+function                                sSnippet_Function(////////////////////////////////////////////////> *
+                                        sIndent                                                         //>
+,                                       asWords                                                         //> *
+){                                      //////////////////////////////////////////////////////////////////> *
+ var                                    r_s                     = '';                                   //>
+                                                                                                        //>
+  r_s                                                           =         "\n\n";                       //>
+  r_s += (sIndent+'function').padEnd(39) +' '+ asWords[1] +'(/////////> *' +"\n";                       //>
+  for( i = 2; i < asWords.length; i++ ){    console.log(i);                                             //>
+   s = asWords[i].trim();                                  console.log(s);                              //>
+   if( s[0].toUpperCase() === s[0].toLowerCase() ){                                                     //> If not a letter, then
+  break;                                                                                                //> quit
+   }//if                                                                                                //> .
+   r_s += (   sIndent+ ( i===2?' ':',' )   ).padEnd(39) +' '+ s +'  //> *' +"\n";                       //>
+  }//for                                                                                                //>
+  r_s +=  (   sIndent+'){'                 ).padEnd(39) +' ///////////> *' +"\n";                       //>
+  r_s +=      sIndent+'return "";                                   //>'   +"\n";                       //>
+  r_s +=      sIndent+'}//'+ asWords[1] +'////////////////////////////> '  +"\n"                        //>
+           +          '                                             //>'   +"\n"                        //>
+           +          '                                             //>';                               //>
+return r_s;                                                                                             //>
+}//sSnippet_Function//////////////////////////////////////////////////////////////////////////////////////>
+                                                                                                        //>
+                                                                                                        //>
+function                                sGo_Snippets_Line(////////////////////////////////////////////////> * Create a tidied version of the given line.
+                                        a_sLine                                                         //> * Source code line.
+){                                      //////////////////////////////////////////////////////////////////> * Return '' on success, or an error message.
+ var                                    sLine                   = a_sLine.trimLeft();                   //>
+ var                                    asWords           = sLine.split(' ').filter( (a) => a !== '' ); //> Keep only non-empty element.
+ var                                    nIndents                = a_sLine.length - sLine.length;        //>
+ var                                    sIndent                 = ''.padEnd(nIndents);                  //>
+ var                                    s                       ;                                       //> Short-term utility.                //>
+ if( '/f' === asWords[0] ){   return sSnippet_Function(sIndent ,asWords);   }                           //> Insert snippet for a function:
+return a_sLine;                                                                                         //>
+}//sGo_Snippets_Line//////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
 function                                Go_Neat(//////////////////////////////////////////////////////////> * Create a tidied version of the given file.
@@ -276,7 +332,7 @@ return r_iChar;                                                                 
 //* `); if( 'test' === g_sMode ){ r_sTestCode += `                                                      //> TESTS:
 afuncTests.push( function(){                                                                            //>
   var                                   i                       ;                                       //>
-  i = iSplitCodeComments(  ); if( i !== -1 ){ o('/*_HERE_*/ ('+ i +')'); }                              //> Example of unit test of above function.
+        i = iSplitCodeComments(  ); if( i !== -1 ){ o('/*_HERE_*/ ('+ i +')'); }                        //> Example of unit test of above function.
   i = iSplitCodeComments(''); if( i !== -2 ){ o('/*_HERE_*/ ('+ i +')'); }                              //> This kicks up a fuss during straight execution of this file, so it is commented out.
 });                                                                                                     //>
 //* `;} console.log(`                                                                                   //>
@@ -319,10 +375,13 @@ afuncTests.push( function(){                                                    
   s = sJ( avGo_ParsePathFileName('C:/$/0mf/repo_MAIN/testing.js'          ) ); if( s!=='["C:/$/0mf/","repo_MAIN/","","testing",".js"]'           ){o( '/*_HERE_*/ ('+ s +')'); }//>
   s = sJ( avGo_ParsePathFileName('C:/$/0mf/repo_NOTES/src/more/testing.js') ); if( s!=='["C:/$/0mf/","repo_NOTES/","src/more/","testing",".js"]' ){o( '/*_HERE_*/ ('+ s +')'); }//>
 });                                                                                                     //>
-//* `; var sIgnoreTheFollowingInTestMode = `                                                            //> If testing, then ignore the following...
+//* `; }                                                                                                //>
+//*  var sIgnoreTheFollowingInTestMode = `                                                              //> If testing, then ignore the following...
  var                                    r_s                     = sGo();                                //> If running this file as is, then execute the main function of this file, and
  console.log( r_s );                                                                                    //> display result.
 //* `;                                                                                                  //>
+//* if( 'test' !== g_sMode ){ console.log(sIgnoreTheFollowingInTestMode); }                             //>
+//* else{                                                                                               //>
 //*  if( '' !== r_sTestCode ){                                                                          //>
 //*   console.log("//Tests: ");                                                                         //>
 //*   console.log(r_sTestCode);                                                                         //>
