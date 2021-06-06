@@ -78,7 +78,7 @@ function                                sGo(////////////////////////////////////
  // C:\$\Code\codebasement                                                      Preprocess    .js       //>
  // C:\0mf\java-legacy      repo_MAIN    src\main\webapp\scripts\app\dialogs    inputDialog   .js       //>
  // C:\0mf\java-legacy      repo_NOTES   src\main\webapp\scripts\app\dialogs    inputDialog   .js       //>
- var                                    asPath              = avGo_ParsePathFileName( process.argv[3] );//>
+ var                                    asPath                  = avGo_ParsePathFileName( sPath );      //>
  var                                    sRoot                   = asPath[0];                            //>
  var                                    sRepo                   = asPath[1];                            //>
  var                                    sFolder                 = asPath[2];                            //>
@@ -94,13 +94,13 @@ return 'Not a javascript nor java file.';                                       
  case 'P': case 'p':                                                                                    //> If request is to process current file, then...
                                                                                                         console.log('--------- Process');   console.log('--------- Process');//>
   if( 'repo_MAIN/' === sRepo ){                                                                         //>
-   Go_SwitchToNotes( sRoot ,sRepo ,sFolder ,sFile ,sType );                                             //> Main:If Notes version does not exist yet, then create and line-number it now. Open in notepad++?
+   Go_SwitchToNotes( sRoot ,sFolder ,sFile ,sType );                                                    //> Main:If Notes version does not exist yet, then create and line-number it now. Open in notepad++?
 return '';                                                                                              //>
   }//if                                                                                                 //>
                                                                                                         //>
   Go_Macro( 'main' ,sPath               ,sFile     ,sType  ,sPath+'TEMP_expand/'     ,sFile     ,sType);//> Expand macros with results going to a sub-directory.
-//.  fs.copyFile(      sPath+'TEMP_expand/'+sFile+'_2'+sType  ,sPath+'TEMP_PrettyNotes/'+sFile     +sType ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
-//.  require('child_process').execSync( 'prettier --write '   +sPath+'TEMP_PrettyNotes/'+sFile     +sType);//> run prettier via a synchronous system call, over-writing existing file.
+  fs.copyFile(      sPath+'TEMP_expand/'+sFile+'_2'+sType  ,sPath+'TEMP_PrettyNotes/'+sFile     +sType ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
+  require('child_process').execSync( 'prettier --write '   +sPath+'TEMP_PrettyNotes/'+sFile     +sType);//> run prettier via a synchronous system call, over-writing existing file.
 //.  // Prettify main repo to TEMP_MAIN                                                                 //>
 //.  // Compare TEMP_MACRO and TEMP_MAIN files.                                                         //>
 return '';                                                                                              //> Report success.
@@ -127,7 +127,6 @@ return 'Command "'+ sCommand +'" not recognized.';                              
                                                                                                         //>
 function                                Go_SwitchToNotes(/////////////////////////////////////////////////> Main:If Notes version does not exist yet, then create and line-number it now. Open in notepad++?
                                         a_sRoot                                                         //>
-,                                       a_sRepo                                                         //>
 ,                                       a_sFolder                                                       //>
 ,                                       a_sFile                                                         //>
 ,                                       a_sType                                                         //> * extension
@@ -136,12 +135,23 @@ function                                Go_SwitchToNotes(///////////////////////
  var                                    sPathNotes              = a_sRoot +'repo_NOTES/'+ a_sFolder;    //>
  var                                    sPathFile               = sPathNotes + a_sFile + a_sType;       //>
  if( !fs.existsSync(sPathNotes) ){                                                                      //>
-  fs.mkdirSync(sPathNotes);        // recursive!!!!!!!!11                                               //>
+  fs.mkdirSync(     sPathNotes ,{recursive:true} );                                                     //> recursive
  }                                                                                                      //>
- if( !fs.existsSync(sPathFile) ){                                                                       //>
-  Go_ScanFile( Go_ScanFile_NotesCopy_Line ,sPath+sFolder+sFile+sType   ,sPath+sFolder+sFile+sType );    //>
- }                                                                                                      //>
+                                                                                                        //>
+ Go_ScanFile( Go_ScanFile_NotesCopy_Line ,sPathMain + a_sFile + a_sType   ,sPathFile );                 //>
+ require('child_process').execSync( 'start notepad++ ' +sPathFile );                                    //>
 }//Go_ SwitchToNotes//////////////////////////////////////////////////////////////////////////////////////>
+                                                                                                        //>
+                                                                                                        //>
+function                                Go_ScanFile_NotesCopy_Line(///////////////////////////////////////> *
+                                        a_sLine                                                         //> *
+){                                      //////////////////////////////////////////////////////////////////> *
+ var                                    sLine                  = a_sLine.split("\t").join('    ');      //>
+ var                                    nIndents               = sLine.trimLeft().length - sLine.length;//>
+ var                                    r_s                    = ''.padEnd(nIndents/4);                 //>
+ r_s += sLine.trimLeft();                                                                               //>
+return r_s.padEnd(104) +'//>        ^^^' +"\n";                                                         //> *
+}//Go_ScanFile_NotesCopy_Line/////////////////////////////////////////////////////////////////////////////> *
                                                                                                         //>
                                                                                                         //>
 function                                Go_ScanFile(//////////////////////////////////////////////////////>
@@ -157,7 +167,7 @@ function                                Go_ScanFile(////////////////////////////
   if( iLine === asLINES.length-1   &&   '' === sLine ){                                                 //>
  break;                                                                                                 //>
   }//if                                                                                                 //>
-  r_s += a_functionLine( sLine )+"\n";                                                                  //>
+  r_s += a_functionLine( sLine );                                                                       //>
  }                                                                                                      //>
  if( sDATA !== r_s ){   fs.writeFileSync( a_sPathFileOut ,r_s );   }                                    //>
 }/////////////////////////////////////////////////////////////////////////////////////////////////////////>
@@ -171,9 +181,9 @@ function                                Go_ScanFile_sSnippets_Line(/////////////
  var                                    asWords           = sLine.split(' ').filter( (a) => a !== '' ); //>
  var                                    sIndent                 = ''.padEnd(nIndents);                  //>
  if( '/f' === asWords[0] ){                                                                             //>
-return Go_ScanFile_sSnippets_Line_function(sIndent ,asWords);                                           //>
+return Go_ScanFile_sSnippets_Line_function(sIndent ,asWords) +"\n";                                     //>
  }//if                                                                                                  //>
-return a_sLine;                                                                                         //>
+return a_sLine +"\n";                                                                                   //>
 }/////////////////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
@@ -192,8 +202,8 @@ function                                Go_ScanFile_sSnippets_Line_function(////
   r_s += (  sIndent+ ( i===2?' ':',' )   ).padEnd(39) +' '+ s +'              //> *' +"\n";             //>
  }//for i                                                                                               //>
  r_s += (   sIndent+'){'                 ).padEnd(39) +' ///////////////////////> *' +"\n";             //>
- r_s +=     sIndent+'return "";                                               //> *' +"\n";             //>
- r_s +=     sIndent+'}//'+ asWords[1] +'////////////////////////////////////////> *' +"\n";             //>
+ r_s +=     sIndent+'return "";                                               //>'   +"\n";             //>
+ r_s +=     sIndent+'}//'+ asWords[1] +'////////////////////////////////////////>'   +"\n";             //>
        +    '                                                                 //>'   +"\n";             //>
        +    '                                                                 //>'   +"\n";             //>
 return r_s;                                                                                             //>
@@ -210,11 +220,11 @@ function                                Go_ScanFile_sNeat_Line(/////////////////
  const                                  iSLIDEtO                = 104;                                  //> Normal length of code section of a line - defines where floating comments float to.
                                                                                                         //>
  if( '///' !== sCode.slice(-3) ){                                                                       //> If not a decoration line flagged with 3 or more slashes then
-return sCode.trimEnd().padEnd(iSLIDEtO     ) +'//>'+ sComments;                                         //> Pad the code with spaces to the preferred column
+return sCode.trimEnd().padEnd(iSLIDEtO     ) +'//>'+ sComments +"\n";                                   //> Pad the code with spaces to the preferred column
  }//if                                                                                                  //>
                                                                                                         //> Otherwise
  while( iSLIDEtO < sCode.length   &&   '/' === sCode.slice(-1) ){ sCode = sCode.slice(0,-1); }          //> remove all extra slashes beyond the end of code portion of line.
-return sCode.padEnd(          iSLIDEtO ,'/') +'//>'+ sComments;                                         //> Pad the code with additional slashes after the existing streak.
+return sCode.padEnd(          iSLIDEtO ,'/') +'//>'+ sComments +"\n";                                   //> Pad the code with additional slashes after the existing streak.
 }/////////////////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
@@ -256,7 +266,7 @@ function                                Go_Macro(///////////////////////////////
  var    binary = require('child_process').execSync('node "'+ a_sOutPath+a_sOutFile+'_1'+a_sOutExt +'"');//> Execute intermediate file as JavaScript using node, saving its console.log output.
                                                                                                         //>
  fs.writeFileSync( a_sOutPath+a_sOutFile+'_2'+a_sOutExt ,binary ,"binary" ,function(err){} );           //> Save this preprocessed file.
-}/////////////////////////////////////////////////////////////////////////////////////////////////////////>
+}//Go_Macro///////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
 function                                sGo_Macro_Line(///////////////////////////////////////////////////> * Create a macro expanded version of the given line.
