@@ -2,20 +2,20 @@
 // (c)2021 David C. Walley                                                                              //>
                                                                                                         //>
                                                                                                         //>
-//* var                                 r_sTestCode             ='';                                    //> Macro execution start: Run this as JavaScript code during macro-expansion phase of Preprocess.js. Variable 'r_sMacro' will eventually be saved in result file.
-//* console.log('/* g_sMode= '+ g_sMode +' */');                                                        //> Test variable passed in from tool-chain command.
-//* var                                 sUseStrict              = '"use strict"';                       //> Example variable to inject in output.
-//* var                                 fs                      = require('fs');                        //> Example of including contents of
-//* console.log( fs.readFileSync('./Macros.js').toString() );                                           //> another file.
-//* console.log(`                                                                                       //> Start multi-line text string of code:
+/**/// var                                 r_sTestCode             ='';                                    //> Macro execution start: Run this as JavaScript code during macro-expansion phase of Preprocess.js. Variable 'r_sMacro' will eventually be saved in result file.
+/**/// console.log('/* g_sMode= '+ g_sMode +' */');                                                        //> Test variable passed in from tool-chain command.
+/**/// var                                 sUseStrict              = '"use strict"';                       //> Example variable to inject in output.
+/**/// var                                 fs                      = require('fs');                        //> Example of including contents of
+/**/// console.log( fs.readFileSync('./Macros.js').toString() );                                           //> another file.
+/**/// console.log(`                                                                                       //> Start multi-line text string of code:
 /*sUseStrict*/;                                                                                         //> Example of injecting macro value into expanded code.
   /*'var sM = "'+ g_sMode +'";'*/                                                                       //> Example of injecting macro value (literal text string and value from command line) into expanded code.
                                                                                                         //>
-//* `); if( 'test' === g_sMode ){ r_sTestCode += `                                                      //> TESTS:
+/**/// `); if( 'test' === g_sMode ){ r_sTestCode += `                                                      //> TESTS:
 function o(a){ console.log( 'FAILED at '+ a ); }                                                        //> Code convenience - shortens test code lines.
 function sJ(a){ return JSON.stringify(a); }                                                             //> Code convenience.
 var                                     afuncTests               = [];                                  //> Example of line of code to be included in test-mode macro-expanded code. Start a list of test functions from scratch (done this way so test code will do no harm when executing this file ('Preprocess.js') directly, rather that its prettified or compiled version).
-//* `;} console.log(`                                                                                   //>
+/**/// `;} console.log(`                                                                                   //>
                                                                                                         //>
 /*                                                                                                      //> Example of comment that should survive prettier:
 Tidy:                                                                                                   //>
@@ -29,7 +29,7 @@ Macro language and expansion:                                                   
   During the first step of macro expansion:                                                             //>
     /* type comments, with no space after the '*', are converted to their value                         //>
        after execution as JS code, and                                                                  //>
-    lines starting with //* are uncommented to create valid JS code statements.                         //>
+    lines starting with / * * / / /   are uncommented to create valid JS code statements.                         //>
   Most such uncommented lines begin and end with a backtick character, turning the intervening JS       //>
     source code into multi-line text strings.                                                           //>
   The macro expansion result is then anything output via console.log statements.                        //>
@@ -37,8 +37,8 @@ Macro language and expansion:                                                   
     Deprecate ES-6 back-tick use in code (stick with single or double quote strings and concatenation). //>
     Deprecate use of /* type comments, which are used instead for value insertion, or,                  //>
       when followed by a space, can be used for comments which survive the  prettier step.              //>
-    Start file with  //* console.log(`                                                                  //>
-    End with         //* `);                                                                            //>
+    Start file with  / * * / / /   console.log(`                                                                  //>
+    End with         / * * / / /   `);                                                                            //>
 */                                                                                                      //>
                                                                                                         //>
 const                                   fs                      = require('fs');                        //> Node's standard file system.
@@ -276,7 +276,7 @@ function                                sGo_Macro_Line(/////////////////////////
 ){                                      //////////////////////////////////////////////////////////////////> * Return a text string.
  var                                    r_s                     = '';                                   //>
  var                                    sLine                   = a_sLine +'   ';                       //>
- if( '//* ' === sLine.slice(0,4) ){ sLine = sLine.slice(4); }                                           //> Uncomment lines starting with this.
+ if( '/**/// ' === sLine.slice(0,7) ){ sLine = sLine.slice(7); }                                           //> Uncomment lines starting with this.
  else{                                                                                                  //> For all other lines...
   var                                   asParts                 = sLine.split('/*');                    //> Look for block comments.
   sLine = asParts[0];                                                                                   //> Output will start with everything before.
@@ -329,13 +329,13 @@ return r_iChar;                                                                 
  }//for r_iChar                                                                                         //> .
 return r_iChar;                                                                                         //> Report position of split.
 }//iSplitCodeComments/////////////////////////////////////////////////////////////////////////////////////>
-//* `); if( 'test' === g_sMode ){ r_sTestCode += `                                                      //> TESTS:
+/**/// `); if( 'test' === g_sMode ){ r_sTestCode += `                                                      //> TESTS:
 afuncTests.push( function(){                                                                            //>
   var                                   i                       ;                                       //>
         i = iSplitCodeComments(  ); if( i !== -1 ){ o('/*_HERE_*/ ('+ i +')'); }                        //> Example of unit test of above function.
   i = iSplitCodeComments(''); if( i !== -2 ){ o('/*_HERE_*/ ('+ i +')'); }                              //> This kicks up a fuss during straight execution of this file, so it is commented out.
 });                                                                                                     //>
-//* `;} console.log(`                                                                                   //>
+/**/// `;} console.log(`                                                                                   //>
                                                                                                         //>
                                                                                                         //>
 function                                avGo_ParsePathFileName(///////////////////////////////////////////>
@@ -367,7 +367,7 @@ function                                avGo_ParsePathFileName(/////////////////
                                                                                                         //>
 return  [ r_sRoot ,r_sRepo ,r_sFolder ,r_sFile ,r_sExt ];                                               //>
 }//avGo_ParsePathFileName/////////////////////////////////////////////////////////////////////////////////>
-//* `); if( 'test' === g_sMode ){ r_sTestCode += `                                                      //> TESTS:
+/**/// `); if( 'test' === g_sMode ){ r_sTestCode += `                                                      //> TESTS:
 afuncTests.push( function(){                                                                            //>
   var                                   s                       ;                                       //>
   s = sJ( avGo_ParsePathFileName('C:/$/testing.js'                        ) ); if( s!=='["C:/$/","","","testing",".js"]'                         ){o( '/*_HERE_*/ ('+ s +')'); }//>
@@ -375,15 +375,15 @@ afuncTests.push( function(){                                                    
   s = sJ( avGo_ParsePathFileName('C:/$/0mf/repo_MAIN/testing.js'          ) ); if( s!=='["C:/$/0mf/","repo_MAIN/","","testing",".js"]'           ){o( '/*_HERE_*/ ('+ s +')'); }//>
   s = sJ( avGo_ParsePathFileName('C:/$/0mf/repo_NOTES/src/more/testing.js') ); if( s!=='["C:/$/0mf/","repo_NOTES/","src/more/","testing",".js"]' ){o( '/*_HERE_*/ ('+ s +')'); }//>
 });                                                                                                     //>
-//* `; }                                                                                                //>
-//*  var sIgnoreTheFollowingInTestMode = `                                                              //> If testing, then ignore the following...
+/**/// `; }                                                                                                //>
+/**///  var sIgnoreTheFollowingInTestMode = `                                                              //> If testing, then ignore the following...
  var                                    r_s                     = sGo();                                //> If running this file as is, then execute the main function of this file, and
  console.log( r_s );                                                                                    //> display result.
-//* `;                                                                                                  //>
-//* if( 'test' !== g_sMode ){ console.log(sIgnoreTheFollowingInTestMode); }                             //>
-//* else{                                                                                               //>
-//*  if( '' !== r_sTestCode ){                                                                          //>
-//*   console.log("//Tests: ");                                                                         //>
-//*   console.log(r_sTestCode);                                                                         //>
-//*   console.log( 'console.log("---Start tests"); for( let f of afuncTests ){ f(); } console.log("---End."); ' );//>
-//* }}                                                                                                  //> End of file.
+/**/// `;                                                                                                  //>
+/**/// if( 'test' !== g_sMode ){ console.log(sIgnoreTheFollowingInTestMode); }                             //>
+/**/// else{                                                                                               //>
+/**///  if( '' !== r_sTestCode ){                                                                          //>
+/**///   console.log("//Tests: ");                                                                         //>
+/**///   console.log(r_sTestCode);                                                                         //>
+/**///   console.log( 'console.log("---Start tests"); for( let f of afuncTests ){ f(); } console.log("---End."); ' );//>
+/**/// }}                                                                                                  //> End of file.
