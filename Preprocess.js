@@ -90,13 +90,14 @@ return 'Not a javascript nor java file.';                                       
  case 'P': case 'p':                                                                                    //> If request is to process current file, then...
                                                                                                         console.log('--------- Process');   console.log('--------- Process');//>
   if( 'repo_MAIN/' === sRepo ){                                                                         //> If currently looking at the MAIN version of a file, then
+console.log('hey 1');
    Go_SwitchToNotes( sRoot ,sFolder ,sFile ,sType );                                                    //> if Notes version does not exist yet, then create and line-number it now. Open in notepad++?
 return '';                                                                                              //> Report success.
   }//if                                                                                                 //>
                                                                                                         //>
-  Go_Macro( 'main' ,sPath               +sFolder,sFile     ,sType ,sRoot+'TEMP_expand/'     +sFolder,sFile ,sType);//> Expand macros with results going to a sub-directory.
-  fs.copyFile(      sPath+'TEMP_expand/'+sFolder+sFile+'_2'+sType ,sRoot+'TEMP_PrettyNotes/'+sFolder+sFile+ sType ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
-  require('child_process').execSync( 'prettier --write '         + sRoot+'TEMP_PrettyNotes/'+sFolder+sFile+ sType);//> run prettier via a synchronous system call, over-writing existing file.
+//.  Go_Macro( 'main' ,sPath               +sFolder,sFile     ,sType ,sRoot+'TEMP_expand/'     +sFolder,sFile ,sType);//> Expand macros with results going to a sub-directory.
+//,  fs.copyFile(      sPath+'TEMP_expand/'+sFolder+sFile+'_2'+sType ,sRoot+'TEMP_PrettyNotes/'+sFolder+sFile+ sType ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
+//,  require('child_process').execSync( 'prettier --write '         + sRoot+'TEMP_PrettyNotes/'+sFolder+sFile+ sType);//> run prettier via a synchronous system call, over-writing existing file.
 //.  // Prettify main repo to TEMP_MAIN                                                                 //>
 //.  // Compare TEMP_MACRO and TEMP_MAIN files.                                                         //>
 return '';                                                                                              //> Report success.
@@ -132,11 +133,17 @@ function                                Go_SwitchToNotes(///////////////////////
  var                                    sPathFile               = sPathNotes + a_sFile+a_sType;         //>
  if( !fs.existsSync(sPathNotes) ){                                                                      //> If the Notes sub-folder does not exist, then
   fs.mkdirSync(     sPathNotes ,{recursive:true} );                                                     //> create it now, recursively.
-  Go_ScanFile( Go_ScanFile_NotesCopy_Line   ,sPathMain + a_sFile+a_sType   ,sPathFile );                //> Create a new copy of the file, one line at a time.
  }//if                                                                                                  //> .
+
+console.log('hey 2');
+ if( !fs.existsSync(sPathFile) ){                                                                      //> If the Notes sub-folder does not exist, then
+  console.log('hey 3');
+  Go_ScanFile( Go_ScanFile_NotesCopy_Line   ,sPathMain + a_sFile+a_sType   ,sPathFile );                //> Create a new copy of the file, one line at a time.
+ }//if
+
                                                                                                         //>
  require('child_process').execSync( 'start notepad++ ' +sPathFile );                                    //> Issue system command to open the result file in Notepad++.
-}//Go_ SwitchToNotes//////////////////////////////////////////////////////////////////////////////////////>
+}//Go_SwitchToNotes//////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
 function                                Go_ScanFile_NotesCopy_Line(///////////////////////////////////////> * Copy a line of source code, collapsing indentation, adding a blank comment with the line numbers of the original fike.
@@ -186,7 +193,7 @@ function                                Go_ScanFile(////////////////////////////
   }//if                                                                                                 //>
   r_s += a_functionLine( sLine ,a_sPathFileIn ,iLine );                                                 //>
  }                                                                                                      //>
- r_s += a_functionLine( '','' ,-1 );                                                         //>
+ r_s += a_functionLine( '','' ,-1 );                                                                    //>
  if( sDATA !== r_s ){   fs.writeFileSync( a_sPathFileOut ,r_s );   }                                    //>
 }/////////////////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
@@ -196,7 +203,7 @@ function                                Go_ScanFile_sSnippets_Line(/////////////
 ,                                       a_sPathFileIn                                                   //> *
 ,                                       iLine                                                           //> *
 ){                                      //////////////////////////////////////////////////////////////////> *
- if( iLine < 0 ){ return ''; }
+ if( iLine < 0 ){ return ''; }                                                                          //>
  var                                    sLine                   = a_sLine.trimLeft();                   //>
  var                                    nIndents                = a_sLine.length - sLine.length;        //>
  var                                    asWords           = sLine.split(' ').filter( (a) => a !== '' ); //>
@@ -236,7 +243,7 @@ function                                Go_ScanFile_sNeat_Line(/////////////////
 ,                                       a_sPathFileIn                                                   //> *
 ,                                       iLine                                                           //> *
 ){                                      //////////////////////////////////////////////////////////////////> *
- if( iLine < 0 ){ return ''; }
+ if( iLine < 0 ){ return ''; }                                                                          //>
  var                                    r_s                     = '';                                   //>
  var                                    iChar                   = iSplitCodeComments( '' ,a_sLine );    //> Find split point between code and comments.
  var                                    sCode                   = a_sLine.slice(0,iChar  )          ;   //>
@@ -264,41 +271,41 @@ function                                Go_Macro(///////////////////////////////
 console.log('Go_Macro ',a_sMode);                                                                       //>
 console.log(a_sInPath ,a_sInFile ,a_sInExt );                                                           //>
 console.log(a_sOutPath,a_sOutFile,a_sOutExt );                                                          //>
- const                                  sPATHfILEiN             = a_sInPath + a_sInFile + a_sInExt;     //>
- const                                  sDATA                   = fs.readFileSync(sPATHfILEiN,'UTF-8'); //>
- const                                  asLINES                 = sDATA.split("\n");                    //>
- var                                    r_s                     = 'var g_sMode="'+ a_sMode +'";' +"\n"; //>
- var                                    bInCommentBlock         = false;                                //>
- var                                    s                       ;                                       //>
- for( var iLine = 0; iLine < asLINES.length; iLine++ ){                                                 //>
-  var                                   sLine                   = asLINES[iLine];                       //>
-  if( iLine === asLINES.length-1   &&   '' === sLine ){                                                 //> If on last line, and it is blank, then
- break;//for iLine                                                                                      //> we are done
-  }//if                                                                                                 //> .
-  s = sGo_Macro_Line( sLine ,sPATHfILEiN,iLine );                                                       //> Process (macro-expand) one line.
-  if( !bInCommentBlock ){   if( '/'+'* ' === sLine.slice(0,3) ){ bInCommentBlock = true ; }   }         //> Use new lines when inside a preserved comment.
-  else                  {   if( '*'+'/ ' === sLine.slice(0,3) ){ bInCommentBlock = false; }   }         //> Outside, ignore new lines (and let Prettier sort it out).
-  if( bInCommentBlock ){                                                                                //> If in a multi-line comment block, then
-   r_s += s +"\n";                                                                                      //> leave the line as is, and
- continue;                                                                                              //> this line is done
-  }//if                                                                                                 //> .
-                                                                                                        //> But if NOT in a multi-line comment block, then
-  s = s.trim();                                                                                         //> put everything on one line (and let Prettier sort it out).
-  r_s += s + (( '' === s )?"\n\n" :' ');                                                                //> Preserve blank lines, otherwise put everything on one line and let Prettier sort it out (but leave multi-line comments alone).
- }//for iLine                                                                                           //>
-                                                                                                        //>
- r_s = r_s.split('\\').join('\\\\');                                                                    //> Work-around escape of backslash at this point (should be done in later step).
-                                                                                                        //>
- if( !fs.existsSync(a_sOutPath) ){                                                                      //> If the Notes sub-folder does not exist, then
-  fs.mkdirSync(     a_sOutPath ,{recursive:true} );                                                     //> create it now, recursively.
- }//if                                                                                                  //> .
-                                                                                                        //>
-                                                                                                        //>
- fs.writeFileSync(                                           a_sOutPath+a_sOutFile+'_1'+a_sOutExt,r_s );//> Save this intermediate file.
-                                                                                                        //>
- var    binary = require('child_process').execSync('node "'+ a_sOutPath+a_sOutFile+'_1'+a_sOutExt +'"');//> Execute intermediate file as JavaScript using node, saving its console.log output.
-                                                                                                        //>
- fs.writeFileSync( a_sOutPath+a_sOutFile+'_2'+a_sOutExt ,binary ,"binary" ,function(err){} );           //> Save this preprocessed file.
+//.  const                                  sPATHfILEiN             = a_sInPath + a_sInFile + a_sInExt;     //>
+//.  const                                  sDATA                   = fs.readFileSync(sPATHfILEiN,'UTF-8'); //>
+//.  const                                  asLINES                 = sDATA.split("\n");                    //>
+//.  var                                    r_s                     = 'var g_sMode="'+ a_sMode +'";' +"\n"; //>
+//.  var                                    bInCommentBlock         = false;                                //>
+//.  var                                    s                       ;                                       //>
+//.  for( var iLine = 0; iLine < asLINES.length; iLine++ ){                                                 //>
+//.   var                                   sLine                   = asLINES[iLine];                       //>
+//.   if( iLine === asLINES.length-1   &&   '' === sLine ){                                                 //> If on last line, and it is blank, then
+//.  break;//for iLine                                                                                      //> we are done
+//.   }//if                                                                                                 //> .
+//.   s = sGo_Macro_Line( sLine ,sPATHfILEiN,iLine );                                                       //> Process (macro-expand) one line.
+//.   if( !bInCommentBlock ){   if( '/'+'* ' === sLine.slice(0,3) ){ bInCommentBlock = true ; }   }         //> Use new lines when inside a preserved comment.
+//.   else                  {   if( '*'+'/ ' === sLine.slice(0,3) ){ bInCommentBlock = false; }   }         //> Outside, ignore new lines (and let Prettier sort it out).
+//.   if( bInCommentBlock ){                                                                                //> If in a multi-line comment block, then
+//.    r_s += s +"\n";                                                                                      //> leave the line as is, and
+//.  continue;                                                                                              //> this line is done
+//.   }//if                                                                                                 //> .
+//.                                                                                                         //> But if NOT in a multi-line comment block, then
+//.   s = s.trim();                                                                                         //> put everything on one line (and let Prettier sort it out).
+//.   r_s += s + (( '' === s )?"\n\n" :' ');                                                                //> Preserve blank lines, otherwise put everything on one line and let Prettier sort it out (but leave multi-line comments alone).
+//.  }//for iLine                                                                                           //>
+//.                                                                                                         //>
+//.  r_s = r_s.split('\\').join('\\\\');                                                                    //> Work-around escape of backslash at this point (should be done in later step).
+//.                                                                                                         //>
+//.  if( !fs.existsSync(a_sOutPath) ){                                                                      //> If the Notes sub-folder does not exist, then
+//.   fs.mkdirSync(     a_sOutPath ,{recursive:true} );                                                     //> create it now, recursively.
+//.  }//if                                                                                                  //> .
+//.                                                                                                         //>
+//.                                                                                                         //>
+//.  fs.writeFileSync(                                           a_sOutPath+a_sOutFile+'_1'+a_sOutExt,r_s );//> Save this intermediate file.
+//.                                                                                                         //>
+//.  var    binary = require('child_process').execSync('node "'+ a_sOutPath+a_sOutFile+'_1'+a_sOutExt +'"');//> Execute intermediate file as JavaScript using node, saving its console.log output.
+//.                                                                                                         //>
+//.  fs.writeFileSync( a_sOutPath+a_sOutFile+'_2'+a_sOutExt ,binary ,"binary" ,function(err){} );           //> Save this preprocessed file.
 }//Go_Macro///////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
@@ -307,7 +314,7 @@ function                                sGo_Macro_Line(/////////////////////////
 ,                                       a_sPathFile                                                     //> * Path and file name of the file to be tidied.
 ,                                       a_iLine                                                         //> * Source code line number.
 ){                                      //////////////////////////////////////////////////////////////////> * Return a text string.
- if( iLine < 0 ){ return ''; }
+ if( iLine < 0 ){ return ''; }                                                                          //>
  var                                    r_s                     = '';                                   //>
  var                                    sLine                   = a_sLine +'   ';                       //>
  if( '/'+'*'+'*'+'/'+'/'+'/ ' === sLine.slice(0,7) ){ sLine = sLine.slice(7); }                         //> Uncomment lines starting with this.
