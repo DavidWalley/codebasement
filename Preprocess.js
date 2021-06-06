@@ -2,10 +2,10 @@
 // (c)2021 David C. Walley                                                                              //>
                                                                                                         //>
                                                                                                         //>
-/**/// var                                 r_sTestCode             ='';                                 //> Macro execution start: Run this as JavaScript code during macro-expansion phase of Preprocess.js. Variable 'r_sMacro' will eventually be saved in result file.
+/**/// var                              r_sTestCode             ='';                                    //> Macro execution start: Run this as JavaScript code during macro-expansion phase of Preprocess.js. Variable 'r_sMacro' will eventually be saved in result file.
 /**/// console.log('/* g_sMode= '+ g_sMode +' */');                                                     //> Test variable passed in from tool-chain command.
-/**/// var                                 sUseStrict              = '"use strict"';                    //> Example variable to inject in output.
-/**/// var                                 fs                      = require('fs');                     //> Example of including contents of
+/**/// var                              sUseStrict              = '"use strict"';                       //> Example variable to inject in output.
+/**/// var                              fs                      = require('fs');                        //> Example of including contents of
 /**/// console.log( fs.readFileSync('./Macros.js').toString() );                                        //> another file.
 /**/// console.log(`                                                                                    //> Start multi-line text string of code:
 /*sUseStrict*/;                                                                                         //> Example of injecting macro value into expanded code.
@@ -59,7 +59,7 @@ const                                   fs                      = require('fs');
 // +----------------------+   |                                                                         //>
 // | Source codebase repo |---^                                      Notes                              //> Source codebase repo, with extensive comments, macros
 // |New version with notes|---> macro expand 'test' -->              TEMP_Tests --> execute tests       //> Code ready for test execution.
-// |and macros.           |---> macro expand 'main' -->              TEMP_expand                        //> Macro-expanded code in *.js_1 and *.js_2.
+// |and macros.           |---> macro expand 'norm' -->              TEMP_expand                        //> Macro-expanded code in *.js_1 and *.js_2.
 // +----------------------+                         --> prettier --> TEMP_PrettyNotes  <---\            //> Prettified notes code. If different from MAIN/TEMP_PRETTY then edit NOTES.
 //                                                                                         compare      //> Use compare app or plug-in, and update NOTES source file to stay in sync?
 //               >------------------------------------> prettier --> TEMP_Pretty       <---/            //> Prettified main code
@@ -90,16 +90,17 @@ return 'Not a javascript nor java file.';                                       
  case 'P': case 'p':                                                                                    //> If request is to process current file, then...
                                                                                                         console.log('--------- Process');   console.log('--------- Process');//>
   if( 'repo_MAIN/' === sRepo ){                                                                         //> If currently looking at the MAIN version of a file, then
-console.log('hey 1');
    Go_SwitchToNotes( sRoot ,sFolder ,sFile ,sType );                                                    //> if Notes version does not exist yet, then create and line-number it now. Open in notepad++?
 return '';                                                                                              //> Report success.
   }//if                                                                                                 //>
                                                                                                         //>
-//.  Go_Macro( 'main' ,sPath               +sFolder,sFile     ,sType ,sRoot+'TEMP_expand/'     +sFolder,sFile ,sType);//> Expand macros with results going to a sub-directory.
-//,  fs.copyFile(      sPath+'TEMP_expand/'+sFolder+sFile+'_2'+sType ,sRoot+'TEMP_PrettyNotes/'+sFolder+sFile+ sType ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
-//,  require('child_process').execSync( 'prettier --write '         + sRoot+'TEMP_PrettyNotes/'+sFolder+sFile+ sType);//> run prettier via a synchronous system call, over-writing existing file.
-//.  // Prettify main repo to TEMP_MAIN                                                                 //>
-//.  // Compare TEMP_MACRO and TEMP_MAIN files.                                                         //>
+  Go_Macro( 'norm' ,sPath               +sFolder,sFile     ,sType ,sRoot+'TEMP_expand/'     +sFolder,sFile ,sType);//> Expand macros with results going to a sub-directory.
+                                                                                                        //>
+  EnsurePathExists(                                                  sRoot+'TEMP_PrettyNotes/'+sFolder );//>
+  fs.copyFileSync(    sRoot+'TEMP_expand/'+sFolder+sFile+'_2'+sType ,sRoot+'TEMP_PrettyNotes/'+sFolder+sFile+sType ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
+  require('child_process').execSync( 'prettier --write '           + sRoot+'TEMP_PrettyNotes/'+sFolder+sFile+sType);//> run prettier via a synchronous system call, over-writing existing file.
+  // Prettify main repo to TEMP_MAIN                                                                    //>
+  // Compare TEMP_MACRO and TEMP_MAIN files.                                                            //>
 return '';                                                                                              //> Report success.
                                                                                                         //>
                                                                                                         //>
@@ -122,6 +123,15 @@ return 'Command "'+ sCommand +'" not recognized.';                              
 }//sGo////////////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
+function                                EnsurePathExists(/////////////////////////////////////////////////> Create a directory if it does not already exist.
+                                        a_sPath                                                         //>
+){                                      //////////////////////////////////////////////////////////////////>
+ if( !fs.existsSync(a_sPath) ){                                                                         //> If the Notes sub-folder does not exist, then
+  fs.mkdirSync(     a_sPath ,{recursive:true} );                                                        //> create it now, recursively.
+ }//if                                                                                                  //> .
+}//EnsurePathExists///////////////////////////////////////////////////////////////////////////////////////>
+                                                                                                        //>
+                                                                                                        //>
 function                                Go_SwitchToNotes(/////////////////////////////////////////////////> * Open or switch to a Notated version of the Main source code file, creating one if required. If Notes version does not exist yet, then create and line-number it now. Open in notepad++?
                                         a_sRoot                                                         //> *
 ,                                       a_sFolder                                                       //> *
@@ -131,50 +141,42 @@ function                                Go_SwitchToNotes(///////////////////////
  var                                    sPathMain               = a_sRoot +'repo_MAIN/' + a_sFolder;    //>
  var                                    sPathNotes              = a_sRoot +'repo_NOTES/'+ a_sFolder;    //>
  var                                    sPathFile               = sPathNotes + a_sFile+a_sType;         //>
- if( !fs.existsSync(sPathNotes) ){                                                                      //> If the Notes sub-folder does not exist, then
-  fs.mkdirSync(     sPathNotes ,{recursive:true} );                                                     //> create it now, recursively.
- }//if                                                                                                  //> .
-
-console.log('hey 2');
- if( !fs.existsSync(sPathFile) ){                                                                      //> If the Notes sub-folder does not exist, then
-  console.log('hey 3');
+ EnsurePathExists(sPathNotes);                                                                          //>
+ if( !fs.existsSync(sPathFile) ){                                                                       //> If the Notes sub-folder does not exist, then
   Go_ScanFile( Go_ScanFile_NotesCopy_Line   ,sPathMain + a_sFile+a_sType   ,sPathFile );                //> Create a new copy of the file, one line at a time.
- }//if
-
+ }//if                                                                                                  //>
+                                                                                                        //>
                                                                                                         //>
  require('child_process').execSync( 'start notepad++ ' +sPathFile );                                    //> Issue system command to open the result file in Notepad++.
-}//Go_SwitchToNotes//////////////////////////////////////////////////////////////////////////////////////>
+}//Go_SwitchToNotes///////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
 function                                Go_ScanFile_NotesCopy_Line(///////////////////////////////////////> * Copy a line of source code, collapsing indentation, adding a blank comment with the line numbers of the original fike.
                                         a_sLine                                                         //> *
 ,                                       a_sPathFileIn                                                   //> *
-,                                       iLine                                                           //> *
+,                                       a_iAt                                                           //> * Source code line number (0 is first line), or -1 for last line of the file.
 ){                                      //////////////////////////////////////////////////////////////////> *
- if( iLine < 0 ){                                                                                       //>
-return  '/**/// `);'                                               .padEnd(104)+'//> End of file.'+"\n";//>
- }//if                                                                                                  //>
-                                                                                                        //>
- var                                    sLine                  = a_sLine.split("\t").join('    ');      //>
- var                                    nIndents               = sLine.length - sLine.trimLeft().length;//>
- var                                    r_s                    = ''.padEnd(nIndents/4);                 //>
- r_s += sLine.trim();                                                                                   //>
- if( '' === r_s.trim() ){                                                                               //>
-return '';                                                                                              //>
- }//iuf                                                                                                 //>
- r_s = r_s.padEnd(104) +'//>        ^^^'+ (iLine+1) +"\n";                                              //>
- if( 0 === iLine ){                                                                                     //>
-return ('// '+ a_sPathFileIn +' - ')                               .padEnd(104)+'//>'+"\n"              //>
-      + '// (c)2021 David C. Walley'                               .padEnd(104)+'//>'+"\n"              //>
-      + ' '                                                        .padEnd(104)+'//>'+"\n"              //>
-      + '/**/// var                                 r_sTestCode             =\'\';'.                    //>
-                                                                    padEnd(104)+'//>'+"\n"              //> Macro execution start: Run this as JavaScript code during macro-expansion phase of Preprocess.js. Variable 'r_sMacro' will eventually be saved in result file.
-      + '/**/// console.log(\'/* g_sMode= \'+ g_sMode +\' */\');'  .padEnd(104)+'//>'+"\n"              //> Test variable passed in from tool-chain command.
-      + '/**/// console.log(`'                                     .padEnd(104)+'//>'+"\n"              //> Start multi-line text string of code:
-      + r_s                                                        .padEnd(104)+'//>'+"\n"              //>
-  ;                                                                                                     //>
- }//if                                                                                                  //>
+ if( 0 < a_iAt ){                                                                                       //> If not the end of the file
+  var                                   sLine                   = a_sLine.split("\t").join('    ');     //>
+  var                                   nIndents                = sLine.length -sLine.trimLeft().length;//>
+  var                                   r_s                     = ''.padEnd(nIndents/4);                //>
+  r_s += sLine.trim();                                                                                  //>
+  if( '' === r_s.trim() ){                                                                              //> If the line is blank then
+return '';                                                                                              //> drop it and we are done
+  }//iuf                                                                                                //> .
+  r_s =                                                 r_s.padEnd(104)+'//>        ^^^'+(a_iAt+1)+"\n";//> Add a floating comment with line nunber in original file.
+  if( 0 === a_iAt ){                                                                                    //> If the first line of a file
+return ('// '+ a_sPathFileIn +' - '                              ).padEnd(104)+'//>'+"\n"               //> start with standard header and
+      +('// (c)2021 David C. Walley'                             ).padEnd(104)+'//>'+"\n"               //> copyright notice.
+      +(' '                                                      ).padEnd(104)+'//>'+"\n"               //>
+      +('/**/// console.log(\'/* g_sMode= \'+ g_sMode +\' */\');').padEnd(104)+'//>'+"\n"               //> Set up for macro use. Variable passed in from tool-chain command.
+      +('/**/// console.log(`'                                   ).padEnd(104)+'//>'+"\n"               //> Start multi-line text string of code:
+      + r_s                                                                                             //>
+   ;                                                                                                    //>
+  }//if                                                                                                 //>
 return r_s;                                                                                             //>
+ }//if 0                                                                                                //>
+return ('/**/// `);'                                             ).padEnd(104)+'//> End of file.'+"\n"; //> End file and end multi-line console.log text string during macro expansion.
 }//Go_ScanFile_NotesCopy_Line/////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
@@ -193,17 +195,19 @@ function                                Go_ScanFile(////////////////////////////
   }//if                                                                                                 //>
   r_s += a_functionLine( sLine ,a_sPathFileIn ,iLine );                                                 //>
  }                                                                                                      //>
- r_s += a_functionLine( '','' ,-1 );                                                                    //>
- if( sDATA !== r_s ){   fs.writeFileSync( a_sPathFileOut ,r_s );   }                                    //>
+ r_s += a_functionLine( '','' ,-1 );                                                                    //> Request a possible end of file line or lines.
+//if( sDATA !== r_s ){                                                                                  //>
+  fs.writeFileSync( a_sPathFileOut ,r_s );                                                              //>
+//}                                                                                                     //>
 }/////////////////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
 function                                Go_ScanFile_sSnippets_Line(///////////////////////////////////////> *
                                         a_sLine                                                         //> *
 ,                                       a_sPathFileIn                                                   //> *
-,                                       iLine                                                           //> *
+,                                       a_iAt                                                           //> *
 ){                                      //////////////////////////////////////////////////////////////////> *
- if( iLine < 0 ){ return ''; }                                                                          //>
+ if( a_iAt < 0 ){ return ''; }                                                                          //>
  var                                    sLine                   = a_sLine.trimLeft();                   //>
  var                                    nIndents                = a_sLine.length - sLine.length;        //>
  var                                    asWords           = sLine.split(' ').filter( (a) => a !== '' ); //>
@@ -241,9 +245,9 @@ return r_s;                                                                     
 function                                Go_ScanFile_sNeat_Line(///////////////////////////////////////////> *
                                         a_sLine                                                         //> *
 ,                                       a_sPathFileIn                                                   //> *
-,                                       iLine                                                           //> *
+,                                       a_iAt                                                           //> *
 ){                                      //////////////////////////////////////////////////////////////////> *
- if( iLine < 0 ){ return ''; }                                                                          //>
+ if( a_iAt < 0 ){ return ''; }                                                                          //>
  var                                    r_s                     = '';                                   //>
  var                                    iChar                   = iSplitCodeComments( '' ,a_sLine );    //> Find split point between code and comments.
  var                                    sCode                   = a_sLine.slice(0,iChar  )          ;   //>
@@ -268,53 +272,58 @@ function                                Go_Macro(///////////////////////////////
 ,                                       a_sOutFile                                                      //> *
 ,                                       a_sOutExt                                                       //> *
 ){                                      //////////////////////////////////////////////////////////////////>
-console.log('Go_Macro ',a_sMode);                                                                       //>
+console.log('Go_Macro 0 ',a_sMode);                                                                     //>
 console.log(a_sInPath ,a_sInFile ,a_sInExt );                                                           //>
 console.log(a_sOutPath,a_sOutFile,a_sOutExt );                                                          //>
-//.  const                                  sPATHfILEiN             = a_sInPath + a_sInFile + a_sInExt;     //>
-//.  const                                  sDATA                   = fs.readFileSync(sPATHfILEiN,'UTF-8'); //>
-//.  const                                  asLINES                 = sDATA.split("\n");                    //>
-//.  var                                    r_s                     = 'var g_sMode="'+ a_sMode +'";' +"\n"; //>
-//.  var                                    bInCommentBlock         = false;                                //>
-//.  var                                    s                       ;                                       //>
-//.  for( var iLine = 0; iLine < asLINES.length; iLine++ ){                                                 //>
-//.   var                                   sLine                   = asLINES[iLine];                       //>
-//.   if( iLine === asLINES.length-1   &&   '' === sLine ){                                                 //> If on last line, and it is blank, then
-//.  break;//for iLine                                                                                      //> we are done
-//.   }//if                                                                                                 //> .
-//.   s = sGo_Macro_Line( sLine ,sPATHfILEiN,iLine );                                                       //> Process (macro-expand) one line.
-//.   if( !bInCommentBlock ){   if( '/'+'* ' === sLine.slice(0,3) ){ bInCommentBlock = true ; }   }         //> Use new lines when inside a preserved comment.
-//.   else                  {   if( '*'+'/ ' === sLine.slice(0,3) ){ bInCommentBlock = false; }   }         //> Outside, ignore new lines (and let Prettier sort it out).
-//.   if( bInCommentBlock ){                                                                                //> If in a multi-line comment block, then
-//.    r_s += s +"\n";                                                                                      //> leave the line as is, and
-//.  continue;                                                                                              //> this line is done
-//.   }//if                                                                                                 //> .
-//.                                                                                                         //> But if NOT in a multi-line comment block, then
-//.   s = s.trim();                                                                                         //> put everything on one line (and let Prettier sort it out).
-//.   r_s += s + (( '' === s )?"\n\n" :' ');                                                                //> Preserve blank lines, otherwise put everything on one line and let Prettier sort it out (but leave multi-line comments alone).
-//.  }//for iLine                                                                                           //>
-//.                                                                                                         //>
-//.  r_s = r_s.split('\\').join('\\\\');                                                                    //> Work-around escape of backslash at this point (should be done in later step).
-//.                                                                                                         //>
-//.  if( !fs.existsSync(a_sOutPath) ){                                                                      //> If the Notes sub-folder does not exist, then
-//.   fs.mkdirSync(     a_sOutPath ,{recursive:true} );                                                     //> create it now, recursively.
-//.  }//if                                                                                                  //> .
-//.                                                                                                         //>
-//.                                                                                                         //>
-//.  fs.writeFileSync(                                           a_sOutPath+a_sOutFile+'_1'+a_sOutExt,r_s );//> Save this intermediate file.
-//.                                                                                                         //>
-//.  var    binary = require('child_process').execSync('node "'+ a_sOutPath+a_sOutFile+'_1'+a_sOutExt +'"');//> Execute intermediate file as JavaScript using node, saving its console.log output.
-//.                                                                                                         //>
-//.  fs.writeFileSync( a_sOutPath+a_sOutFile+'_2'+a_sOutExt ,binary ,"binary" ,function(err){} );           //> Save this preprocessed file.
+ const                                  sPATHfILEiN             = a_sInPath + a_sInFile + a_sInExt;     //>
+ const                                  sDATA                   = fs.readFileSync(sPATHfILEiN,'UTF-8'); //>
+ const                                  asLINES                 = sDATA.split("\n");                    //>
+ var                                    r_s                     = 'var g_sMode="'+ a_sMode +'";' +"\n"; //>
+ var                                    bInCommentBlock         = false;                                //>
+ var                                    s                       ;                                       //>
+ for( var iLine = 0; iLine < asLINES.length; iLine++ ){                                                 //>
+  var                                   sLine                   = asLINES[iLine];                       //>
+  if( iLine === asLINES.length-1   &&   '' === sLine ){                                                 //> If on last line, and it is blank, then
+ break;//for iLine                                                                                      //> we are done
+  }//if                                                                                                 //> .
+  s = sGo_Macro_Line( sLine ,sPATHfILEiN,iLine );                                                       //> Process (macro-expand) one line.
+  if( !bInCommentBlock ){   if( '/'+'* ' === sLine.slice(0,3) ){ bInCommentBlock = true ; }   }         //> Use new lines when inside a preserved comment.
+  else                  {   if( '*'+'/ ' === sLine.slice(0,3) ){ bInCommentBlock = false; }   }         //> Outside, ignore new lines (and let Prettier sort it out).
+  if( bInCommentBlock ){                                                                                //> If in a multi-line comment block, then
+   r_s += s +"\n";                                                                                      //> leave the line as is, and
+ continue;                                                                                              //> this line is done
+  }//if                                                                                                 //> .
+                                                                                                        //> But if NOT in a multi-line comment block, then
+  s = s.trim();                                                                                         //> put everything on one line (and let Prettier sort it out).
+  r_s += s + (( '' === s )?"\n\n" :' ');                                                                //> Preserve blank lines, otherwise put everything on one line and let Prettier sort it out (but leave multi-line comments alone).
+ }//for iLine                                                                                           //>
+console.log('Go_Macro 2');                                                                              //>
+                                                                                                        //>
+ r_s = r_s.split('\\').join('\\\\');                                                                    //> Work-around escape of backslash at this point (should be done in later step).
+                                                                                                        //>
+ if( !fs.existsSync(a_sOutPath) ){                                                                      //> If the Notes sub-folder does not exist, then
+  fs.mkdirSync(     a_sOutPath ,{recursive:true} );                                                     //> create it now, recursively.
+ }//if                                                                                                  //> .
+console.log('Go_Macro 3');                                                                              //>
+                                                                                                        //>
+                                                                                                        //>
+ fs.writeFileSync(                                           a_sOutPath+a_sOutFile+'_1'+a_sOutExt,r_s );//> Save this intermediate file.
+console.log('Go_Macro 4');                                                                              //>
+                                                                                                        //>
+ var    binary = require('child_process').execSync('node "'+ a_sOutPath+a_sOutFile+'_1'+a_sOutExt +'"');//> Execute intermediate file as JavaScript using node, saving its console.log output.
+console.log('Go_Macro 5');                                                                              //>
+                                                                                                        //>
+ fs.writeFileSync( a_sOutPath+a_sOutFile+'_2'+a_sOutExt ,binary ,"binary" ,function(err){} );           //> Save this preprocessed file.
+console.log('Go_Macro 99');                                                                             //>
 }//Go_Macro///////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
 function                                sGo_Macro_Line(///////////////////////////////////////////////////> * Create a macro expanded version of the given line.
                                         a_sLine                                                         //> * Source code line.
 ,                                       a_sPathFile                                                     //> * Path and file name of the file to be tidied.
-,                                       a_iLine                                                         //> * Source code line number.
+,                                       a_iAt                                                           //> * Source code line number.
 ){                                      //////////////////////////////////////////////////////////////////> * Return a text string.
- if( iLine < 0 ){ return ''; }                                                                          //>
+ if( a_iAt < 0 ){ return ''; }                                                                          //>
  var                                    r_s                     = '';                                   //>
  var                                    sLine                   = a_sLine +'   ';                       //>
  if( '/'+'*'+'*'+'/'+'/'+'/ ' === sLine.slice(0,7) ){ sLine = sLine.slice(7); }                         //> Uncomment lines starting with this.
@@ -327,8 +336,8 @@ function                                sGo_Macro_Line(/////////////////////////
     sLine += '/*'     + s;                                                                              //> append the part as is, and move on to next part
    }else{                                                                                               //> Otherwise,                                                             //> .
     if(      '_FILE_*/' === s.slice(0 ,8) ){ sLine += a_sPathFile                   + s.slice(8); }     //> Replace magic constant - current file name.
-    else if( '_LINE_*/' === s.slice(0 ,8) ){ sLine +=                   (a_iLine+1) + s.slice(8); }     //> Replace magic constant - current line number.
-    else if( '_HERE_*/' === s.slice(0 ,8) ){ sLine += a_sPathFile +':'+ (a_iLine+1) + s.slice(8); }     //> Replace magic constant - file and line.
+    else if( '_LINE_*/' === s.slice(0 ,8) ){ sLine +=                   (a_a_iAt+1) + s.slice(8); }     //> Replace magic constant - current line number.
+    else if( '_HERE_*/' === s.slice(0 ,8) ){ sLine += a_sPathFile +':'+ (a_a_iAt+1) + s.slice(8); }     //> Replace magic constant - file and line.
     else                                   { sLine += '\u0060+' + s.replace('*'+'/' ,'+\u0060') ; }     //> immediate replacement with `+( ... )+` (where ... is the comment contents).
  }}}//if//for i//else                                                                                   //>
                                                                                                         //>
