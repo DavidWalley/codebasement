@@ -70,8 +70,8 @@ const                                   fs                      = require('fs');
 //  +-------------------+                                                                               //>
                                                                                                         //>
                                                                                                         //>
-function                                sGo(//////////////////////////////////////////////////////////////> Main execution of this file starts here.
-){                                      //////////////////////////////////////////////////////////////////>
+function                                sGo(//////////////////////////////////////////////////////////////> * Main execution of this file starts here.
+){                                      //////////////////////////////////////////////////////////////////> *
  var                                    sCommand                = process.argv[2][0];                   //> First letter of first parameter is the action to be taken, as detailed below.
  var                                    sPath                   = process.argv[3].split('\\').join('/');//> Convert Windows to UNIX path delimiters.
  // sRoot                   sRepo        sFolder                                sFile         sType     //>
@@ -125,12 +125,12 @@ return 'Command "'+ sCommand +'" not recognized.';                              
 }//sGo////////////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                Go_SwitchToNotes(/////////////////////////////////////////////////> Main:If Notes version does not exist yet, then create and line-number it now. Open in notepad++?
-                                        a_sRoot                                                         //>
-,                                       a_sFolder                                                       //>
-,                                       a_sFile                                                         //>
+function                                Go_SwitchToNotes(/////////////////////////////////////////////////> * Main:If Notes version does not exist yet, then create and line-number it now. Open in notepad++?
+                                        a_sRoot                                                         //> *
+,                                       a_sFolder                                                       //> *
+,                                       a_sFile                                                         //> *
 ,                                       a_sType                                                         //> * extension
-){                                      //////////////////////////////////////////////////////////////////>
+){                                      //////////////////////////////////////////////////////////////////> *
  var                                    sPathMain               = a_sRoot +'repo_MAIN/' + a_sFolder;    //>
  var                                    sPathNotes              = a_sRoot +'repo_NOTES/'+ a_sFolder;    //>
  var                                    sPathFile               = sPathNotes + a_sFile + a_sType;       //>
@@ -145,20 +145,32 @@ function                                Go_SwitchToNotes(///////////////////////
                                                                                                         //>
 function                                Go_ScanFile_NotesCopy_Line(///////////////////////////////////////> *
                                         a_sLine                                                         //> *
+,                                       a_sPathFileIn                                                   //> *
+,                                       iLine                                                           //> *
 ){                                      //////////////////////////////////////////////////////////////////> *
  var                                    sLine                  = a_sLine.split("\t").join('    ');      //>
- var                                    nIndents               = sLine.trimLeft().length - sLine.length;//>
+ var                                    nIndents               = sLine.length - sLine.trimLeft().length;//>
  var                                    r_s                    = ''.padEnd(nIndents/4);                 //>
- r_s += sLine.trimLeft();                                                                               //>
-return r_s.padEnd(104) +'//>        ^^^' +"\n";                                                         //> *
-}//Go_ScanFile_NotesCopy_Line/////////////////////////////////////////////////////////////////////////////> *
+ r_s += sLine.trim();                                                                                   //>
+ if( '' === r_s.trim() ){                                                                               //>
+return '';                                                                                              //>
+ }//iuf                                                                                                 //>
+ r_s = r_s.padEnd(104) +'//>        ^^^'+ iLine +"\n";                                                  //>
+ if( 0 === iLine ){                                                                                     //>
+  r_s = ('// '+ a_sPathFileIn +' - ').padEnd(104) +'//>'+"\n"                                           //>
+       + '// (c)2021 David C. Walley'.padEnd(104) +'//>'+"\n"                                           //>
+       + ' '                         .padEnd(104) +'//>'+"\n"                                           //>
+       + r_s;                                                                                           //>
+ }//if                                                                                                  //>
+return r_s;                                                                                             //>
+}//Go_ScanFile_NotesCopy_Line/////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                Go_ScanFile(//////////////////////////////////////////////////////>
-                                        a_functionLine                                                  //>
-,                                       a_sPathFileIn                                                   //>
-,                                       a_sPathFileOut                                                  //>
-){                                      //////////////////////////////////////////////////////////////////>
+function                                Go_ScanFile(//////////////////////////////////////////////////////> *
+                                        a_functionLine                                                  //> *
+,                                       a_sPathFileIn                                                   //> *
+,                                       a_sPathFileOut                                                  //> *
+){                                      //////////////////////////////////////////////////////////////////> *
  const                                  sDATA                 = fs.readFileSync(a_sPathFileIn,'UTF-8'); //>
  const                                  asLINES               = sDATA.split("\n");                      //>
  var                                    r_s                   = '';                                     //>
@@ -167,15 +179,17 @@ function                                Go_ScanFile(////////////////////////////
   if( iLine === asLINES.length-1   &&   '' === sLine ){                                                 //>
  break;                                                                                                 //>
   }//if                                                                                                 //>
-  r_s += a_functionLine( sLine );                                                                       //>
+  r_s += a_functionLine( sLine ,a_sPathFileIn ,iLine);                                                  //>
  }                                                                                                      //>
  if( sDATA !== r_s ){   fs.writeFileSync( a_sPathFileOut ,r_s );   }                                    //>
 }/////////////////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                Go_ScanFile_sSnippets_Line(///////////////////////////////////////>
-                                        a_sLine                                                         //>
-){                                      //////////////////////////////////////////////////////////////////>
+function                                Go_ScanFile_sSnippets_Line(///////////////////////////////////////> *
+                                        a_sLine                                                         //> *
+,                                       a_sPathFileIn                                                   //> *
+,                                       iLine                                                           //> *
+){                                      //////////////////////////////////////////////////////////////////> *
  var                                    sLine                   = a_sLine.trimLeft();                   //>
  var                                    nIndents                = a_sLine.length - sLine.length;        //>
  var                                    asWords           = sLine.split(' ').filter( (a) => a !== '' ); //>
@@ -187,10 +201,10 @@ return a_sLine +"\n";                                                           
 }/////////////////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                Go_ScanFile_sSnippets_Line_function(//////////////////////////////>
-                                        sIndent                                                         //>
-,                                       asWords                                                         //>
-){                                      //////////////////////////////////////////////////////////////////>
+function                                Go_ScanFile_sSnippets_Line_function(//////////////////////////////> *
+                                        sIndent                                                         //> *
+,                                       asWords                                                         //> *
+){                                      //////////////////////////////////////////////////////////////////> *
  var                                    r_s                     =  '          //>'   +"\n"              //>
                                                                   +'          //>'   +"\n";             //>
  r_s +=  (   sIndent+'function' ).padEnd(39) +' '+ asWords[1] +'(///////////////> *' +"\n";             //>
@@ -212,6 +226,8 @@ return r_s;                                                                     
                                                                                                         //>
 function                                Go_ScanFile_sNeat_Line(///////////////////////////////////////////> *
                                         a_sLine                                                         //> *
+,                                       a_sPathFileIn                                                   //> *
+,                                       iLine                                                           //> *
 ){                                      //////////////////////////////////////////////////////////////////> *
  var                                    r_s                     = '';                                   //>
  var                                    iChar                   = iSplitCodeComments( '' ,a_sLine );    //> Find split point between code and comments.
@@ -338,9 +354,9 @@ afuncTests.push( function(){                                                    
 /**/// `;} console.log(`                                                                                //>
                                                                                                         //>
                                                                                                         //>
-function                                avGo_ParsePathFileName(///////////////////////////////////////////> Parse full path and file name, looking for evidence of our directory structure.
-                                        a_sPathFile                                                     //>
-){                                      //////////////////////////////////////////////////////////////////>
+function                                avGo_ParsePathFileName(///////////////////////////////////////////> * Parse full path and file name, looking for evidence of our directory structure.
+                                        a_sPathFile                                                     //> *
+){                                      //////////////////////////////////////////////////////////////////> *
  var                                    asPath                  = a_sPathFile.split(/[\\\/]/);          //> Split on slashes or backslashes.
  var                                    n                       = asPath.length - 1;                    //>
                                                                                                         //>
