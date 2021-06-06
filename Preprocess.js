@@ -37,8 +37,8 @@ Macro language and expansion:                                                   
     Deprecate ES-6 back-tick use in code (stick with single or double quote strings and concatenation). //>
     Deprecate use of /* type comments, which are used instead for value insertion, or,                  //>
       when followed by a space, can be used for comments which survive the  prettier step.              //>
-    Start file with  / * * / / /   console.log(`                                                        //>
-    End with         / * * / / /   `);                                                                  //>
+    Start file with     / * * / / /   console.log( <backtick>                                           //>
+    End with            / * * / / /   <backtick>);                                                      //>
 */                                                                                                      //>
                                                                                                         //>
 const                                   fs                      = require('fs');                        //> Node's standard file system.
@@ -99,10 +99,10 @@ return '';                                                                      
   }//if                                                                                                 //>
                                                                                                         //>
   Go_Macro( 'main' ,sPath               ,sFile     ,sType  ,sPath+'TEMP_expand/'     ,sFile     ,sType);//> Expand macros with results going to a sub-directory.
-  fs.copyFile(      sPath+'TEMP_expand/'+sFile+'_2'+sType  ,sPath+'TEMP_PrettyNotes/'+sFile     +sType ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
-  require('child_process').execSync( 'prettier --write '   +sPath+'TEMP_PrettyNotes/'+sFile     +sType);//> run prettier via a synchronous system call, over-writing existing file.
-  // Prettify main repo to TEMP_MAIN                                                                    //>
-  // Compare TEMP_MACRO and TEMP_MAIN files.                                                            //>
+//.  fs.copyFile(      sPath+'TEMP_expand/'+sFile+'_2'+sType  ,sPath+'TEMP_PrettyNotes/'+sFile     +sType ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
+//.  require('child_process').execSync( 'prettier --write '   +sPath+'TEMP_PrettyNotes/'+sFile     +sType);//> run prettier via a synchronous system call, over-writing existing file.
+//.  // Prettify main repo to TEMP_MAIN                                                                 //>
+//.  // Compare TEMP_MACRO and TEMP_MAIN files.                                                         //>
 return '';                                                                                              //> Report success.
                                                                                                         //>
                                                                                                         //>
@@ -252,7 +252,9 @@ function                                Go_Macro(///////////////////////////////
                                                                                                         //>
  r_s = r_s.split('\\').join('\\\\');                                                                    //> Work-around escape of backslash at this point (should be done in later step).
  fs.writeFileSync(                                           a_sOutPath+a_sOutFile+'_1'+a_sOutExt ,r_s );//> Save this intermediate file.
+                                                                                                        //>
  var    binary = require('child_process').execSync('node "'+ a_sOutPath+a_sOutFile+'_1'+a_sOutExt +'"');//> Execute intermediate file as JavaScript using node, saving its console.log output.
+                                                                                                        //>
  fs.writeFileSync( a_sOutPath+a_sOutFile+'_2'+a_sOutExt ,binary ,"binary" ,function(err){} );           //> Save this preprocessed file.
 }/////////////////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
@@ -264,7 +266,7 @@ function                                sGo_Macro_Line(/////////////////////////
 ){                                      //////////////////////////////////////////////////////////////////> * Return a text string.
  var                                    r_s                     = '';                                   //>
  var                                    sLine                   = a_sLine +'   ';                       //>
- if( '/**/// ' === sLine.slice(0,7) ){ sLine = sLine.slice(7); }                                        //> Uncomment lines starting with this.
+ if( '/'+'*'+'*'+'/'+'/'+'/ ' === sLine.slice(0,7) ){ sLine = sLine.slice(7); }                         //> Uncomment lines starting with this.
  else{                                                                                                  //> For all other lines...
   var                                   asParts                 = sLine.split('/*');                    //> Look for block comments.
   sLine = asParts[0];                                                                                   //> Output will start with everything before.
