@@ -136,7 +136,7 @@ function                                Go_SwitchToNotes(///////////////////////
  var                                    sPathNotes              = a_sRoot +'repo_NOTES/'+ a_sFolder;
  var                                    sPathFile               = sPathNotes + a_sFile + a_sType;
  if( !fs.existsSync(sPathNotes) ){
-  fs.mkdirSync(sPathNotes);
+  fs.mkdirSync(sPathNotes);        // recursive!!!!!!!!11
  }
  if( !fs.existsSync(sPathFile) ){
   Go_ScanFile( Go_ScanFile_NotesCopy_Line ,sPath+sFolder+sFile+sType   ,sPath+sFolder+sFile+sType );
@@ -181,36 +181,40 @@ function                                Go_ScanFile_sSnippets_Line_function(////
                                         sIndent 
 ,                                       asWords 
 ){                                      //////////////////////////////////////////////////////////////>
- var                                    r_s                     =                      "\//>//>" +"\//>//>";
- r_s +=  (   sIndent+'function' ).padEnd(39) +' '+ asWords[1] +'(////////////////> *' +"\            //>//>";
+ var                                    r_s                     =  '          //>'   +"\n" 
+                                                                  +'          //>'   +"\n";
+ r_s +=  (   sIndent+'function' ).padEnd(39) +' '+ asWords[1] +'(///////////////> *' +"\n";
  for( i = 2; i < asWords.length; i++ ){                                                                 console.log(i);
   s = asWords[i].trim();                                                                                console.log(s);
-  if( s[0].toUpperCase() === s[0].toLowerCase() ){ 
- break;
-  } 
-  r_s += (   sIndent+ ( i===2?' ':',' )   ).padEnd(39) +' '+ s +'              //> *' +"\//>//>";  } 
- r_s +=  (   sIndent+'){'                 ).padEnd(39) +' ///////////////////////> *' +"\//>//>";
- r_s +=      sIndent+'return "";                                               //>'   +"\            //>//>";
- r_s +=      sIndent+'}//'+ asWords[1] +'////////////////////////////////////////> '  +"\            //>//>" 
-          +          '                                                         //>'   +"\            //>//>" 
-          +          '                                                         //>';
+  if( s[0].toUpperCase() === s[0].toLowerCase() ){                   //> If not a letter then
+ break;                                                                                    //> quit
+  }                                                                                              //> .
+  r_s += (  sIndent+ ( i===2?' ':',' )   ).padEnd(39) +' '+ s +'              //> *' +"\n";
+ }//for i
+ r_s += (   sIndent+'){'                 ).padEnd(39) +' ///////////////////////> *' +"\n";
+ r_s +=     sIndent+'return "";                                               //> *' +"\n";
+ r_s +=     sIndent+'}//'+ asWords[1] +'////////////////////////////////////////> *' +"\n";
+       +    '                                                                 //>'   +"\n";
+       +    '                                                                 //>'   +"\n";
 return r_s;
 }/////////////////////////////////////////////////////////////////////////////////////////////> 
 
 
-function                                Go_ScanFile_sNeat_Line(
-                                        a_sLine 
-){                                      /////////////////////////////////////////////////////////////////>
- var                                    r_s                     = '';
- var                                    iChar                   = iSplitCodeComments( '' ,a_sLine );
- var                                    sCode                   = a_sLine.slice(0,iChar  )          ;
- var                                    sComments               = a_sLine.slice(  iChar+3).trimEnd();
- const                                  iSLIDEtO                = 104;
- if( '///' !== sCode.slice(-3) ){ 
-return sCode.trimEnd().padEnd(iSLIDEtO     ) +'//>'+ sComments; 
- } 
- while( iSLIDEtO < sCode.length   &&   '/' === sCode.slice(-1) ){ sCode = sCode.slice(0,-1); } 
-return sCode.padEnd(          iSLIDEtO ,'/') +'//>'+ sComments;
+function                                Go_ScanFile_sNeat_Line(//////////////////////////////////////////> *
+                                        a_sLine                                                             //> *
+){                                      /////////////////////////////////////////////////////////////////> *
+ var                                    r_s                     = '';                                   //>
+ var                                    iChar                   = iSplitCodeComments( '' ,a_sLine );    //> Find split point between code and comments.
+ var                                    sCode                   = a_sLine.slice(0,iChar  )          ;   //>
+ var                                    sComments               = a_sLine.slice(  iChar+3).trimEnd();   //>
+ const                                  iSLIDEtO                = 104;                                  //> Normal length of code section of a line - defines where floating comments float to.
+                                                                                                        //>
+ if( '///' !== sCode.slice(-3) ){                                                                       //> If not a decoration line flagged with 3 or more slashes then
+return sCode.trimEnd().padEnd(iSLIDEtO     ) +'//>'+ sComments;                                         //> Pad the code with spaces to the preferred column
+ }//if                                                                                                  //>
+                                                                                                        //> Otherwise
+ while( iSLIDEtO < sCode.length   &&   '/' === sCode.slice(-1) ){ sCode = sCode.slice(0,-1); }          //> remove all extra slashes beyond the end of code portion of line.
+return sCode.padEnd(          iSLIDEtO ,'/') +'//>'+ sComments;                                         //> Pad the code with additional slashes after the existing streak.
 }///////////////////////////////////////////////////////////////////////////////////////////////////////> 
 
 
@@ -225,60 +229,60 @@ function                                Go_Macro(///////////////////////////////
 ){                                      ////////////////////////////////////////////////>
  const                                  sPATHfILEiN             = a_sInPath + a_sInFile + a_sInExt;
  const                                  sDATA                   = fs.readFileSync(sPATHfILEiN,'UTF-8');
- var                                    r_s                     = 'var g_sMode="'+ a_sMode +'";' +"\//>//>";
- const                                  asLINES                 = sDATA.split("\                     //>//>");
+ var                                    r_s                     = 'var g_sMode="'+ a_sMode +'";' +"\n";
+ const                                  asLINES                 = sDATA.split("\n");
  var                                    bInCommentBlock         = false;
  var                                    s                       ;
  for( var iLine = 0; iLine < asLINES.length; iLine++ ){ 
   var                                   sLine                   = asLINES[iLine];
-  if( iLine === asLINES.length-1   &&   '' === sLine ){
- break;
-  } 
-  s = sGo_Macro_Line( sLine ,sPATHfILEiN,iLine );
-  if( !bInCommentBlock ){   if( '/'+'* ' === sLine.slice(0,3) ){ bInCommentBlock = true ;}   }
-  else                  {   if( '*'+'/ ' === sLine.slice(0,3) ){ bInCommentBlock = false;}   }
-  if(  bInCommentBlock ){ 
-   r_s += s +"\//>//>";
- continue;
-  } 
-  s = s.trim();
-  r_s += s + (( '' === s )?"\                                        //>//>\         //>//>" :' ');
- } 
- r_s = r_s.split('\\\\').join('\\\\\\\\');
- fs.writeFileSync(                                           a_sOutPath+a_sOutFile+'_1'+a_sOutExt,r_s );
- var     binary = require('child_process').execSync('node "'+a_sOutPath+a_sOutFile+'_1'+a_sOutExt+'"');
- fs.writeFileSync(                                           a_sOutPath+a_sOutFile+'_2'+a_sOutExt 
-        ,binary ,"binary" ,function(err){} 
- );
-} 
+  if( iLine === asLINES.length-1   &&   '' === sLine ){                                                 //> If on last line, and it is blank, then
+ break;//for iLine                                                                                      //> we are done
+  }//if                                                                                                 //> .
+  s = sGo_Macro_Line( sLine ,sPATHfILEiN,iLine );                                                       //> Process (macro-expand) one line.
+  if( !bInCommentBlock ){   if( '/'+'* ' === sLine.slice(0,3) ){ bInCommentBlock = true ; }   }         //> Use new lines when inside a preserved comment.
+  else                  {   if( '*'+'/ ' === sLine.slice(0,3) ){ bInCommentBlock = false; }   }         //> Outside, ignore new lines (and let Prettier sort it out).
+  if( bInCommentBlock ){                                                                                //> If in a multi-line comment block, then
+   r_s += s +"\n";                                                                                    //> leave the line as is, and
+ continue;                                                                                              //> this line is done
+  }//if                                                                                                 //> .
+                                                                                                        //> But if NOT in a multi-line comment block, then
+  s = s.trim();                                                                                         //> put everything on one line (and let Prettier sort it out).
+  r_s += s + (( '' === s )?"\n\n" :' ');                                                              //> Preserve blank lines, otherwise put everything on one line and let Prettier sort it out (but leave multi-line comments alone).
+ }//for iLine                                                                                           //>
+
+ r_s = r_s.split('\\').join('\\\\');                                                                //> Work-around escape of backslash at this point (should be done in later step).
+ fs.writeFileSync(                                           a_sOutPath+a_sOutFile+'_1'+a_sOutExt ,r_s );//> Save this intermediate file.
+ var    binary = require('child_process').execSync('node "'+ a_sOutPath+a_sOutFile+'_1'+a_sOutExt +'"');   //> Execute intermediate file as JavaScript using node, saving its console.log output.
+ fs.writeFileSync( a_sOutPath+a_sOutFile+'_2'+a_sOutExt ,binary ,"binary" ,function(err){} );           //> Save this preprocessed file.
+}////////////////////////////////////> 
 
 
-function                                sGo_Macro_Line(///////////////////////////////>
-                                        a_sLine                                        //>
-,                                       a_sPathFile                                    //>
-,                                       a_iLine                                        //>
-){                                      /////////////////////////////////////>
- var                                    r_s                     = '';
- var                                    sLine                   = a_sLine +'   ';
- if( '//* ' === sLine.slice(0,4) ){ sLine = sLine.slice(4); } 
- else{ 
-  var                                   asParts                 = sLine.split('/*');
-  sLine = asParts[0];
-  for( var i = 1; i < asParts.length; i++ ){
-   var                                  s                       = asParts[i];
-   if( ' ' === s[0]   ||   ! s.includes('*/') ){ sLine += '/*'     + s;
-   }else{ 
-    if(      '_FILE_*/' === s.slice(0 ,8)     ){ sLine += a_sPathFile                   + s.slice(8); }
-    else if( '_LINE_*/' === s.slice(0 ,8)     ){ sLine +=                   (a_iLine+1) + s.slice(8); }
-    else if( '_HERE_*/' === s.slice(0 ,8)     ){ sLine += a_sPathFile +':'+ (a_iLine+1) + s.slice(8); }
-    else                                       { sLine += '\\u0060+'+ s.replace('*'+'/' ,'+\\u0060'); }
-   }
-  }
- } 
- var                                    iChar                = iSplitCodeComments('strip' ,sLine +'//');
- var                                    sCode                = sLine.slice(0 ,iChar-1);
-return sCode.trimEnd();
-}///////////////////////////////////////////////////////////////////////////////////> 
+function                                sGo_Macro_Line(///////////////////////////////////////////////////> * Create a macro expanded version of the given line.
+                                        a_sLine                                                         //> * Source code line.
+,                                       a_sPathFile                                                     //> * Path and file name of the file to be tidied.
+,                                       a_iLine                                                         //> * Source code line number.
+){                                      //////////////////////////////////////////////////////////////////> * Return a text string.
+ var                                    r_s                     = '';                                   //>
+ var                                    sLine                   = a_sLine +'   ';                       //>
+ if( '/**/// ' === sLine.slice(0,7) ){ sLine = sLine.slice(7); }                                           //> Uncomment lines starting with this.
+ else{                                                                                                  //> For all other lines...
+  var                                   asParts                 = sLine.split('/*');                    //> Look for block comments.
+  sLine = asParts[0];                                                                                   //> Output will start with everything before.
+  for( var i = 1; i < asParts.length; i++ ){                                                            //> For each other part
+   var                                  s                       = asParts[i];                           //>
+   if( ' ' === s[0]   ||   ! s.includes('*/') ){                                                        //> If the block comment starts with a space, or there is no end to the block comment then
+    sLine += '/*'     + s;                                                                              //> append the part as is, and move on to next part
+   }else{                                                                                               //> Otherwise,                                                             //> .
+    if(      '_FILE_*/' === s.slice(0 ,8) ){ sLine += a_sPathFile                   + s.slice(8); }     //> Replace magic constant - current file name.
+    else if( '_LINE_*/' === s.slice(0 ,8) ){ sLine +=                   (a_iLine+1) + s.slice(8); }     //> Replace magic constant - current line number.
+    else if( '_HERE_*/' === s.slice(0 ,8) ){ sLine += a_sPathFile +':'+ (a_iLine+1) + s.slice(8); }     //> Replace magic constant - file and line.
+    else                                   { sLine += '\u0060+' + s.replace('*'+'/' ,'+\u0060') ; }     //> immediate replacement with `+( ... )+` (where ... is the comment contents).
+ }}}//if//for i//else                                                                                   //>
+                                                                                                        //>
+ var                                    iChar                = iSplitCodeComments('strip' ,sLine +'//');//> Find split point between code and comments.
+ var                                    sCode                = sLine.slice(0 ,iChar-1);                 //>
+return sCode.trimEnd();                                                                                 //>
+}//sGo_Macro_Line/////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
 function                                iSplitCodeComments(///////////////////////////////////////////////> * Find split point between code and comments.
