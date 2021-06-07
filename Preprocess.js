@@ -86,12 +86,11 @@ return 'Not a javascript nor java file.';                                       
                                                                                                         //>
  switch( sCommand ){                                                                                    //> Depending on command line parameter...
  case 'P': case 'p':                                                                                    //> If request is to process current file, then...
-                                                                                                        console.log('--------- Process');   console.log('--------- Process');//>
+  const                   sPRETTY = 'prettier --write --print-width 120 --single-quote --tab-width 4 ';    console.log('--------- Process');   console.log('--------- Process');//>
   if( 'repo_MAIN/' === sRepo ){                                                                         //> If currently looking at the MAIN version of a file, then Prettify main repo to TEMP_MAIN
-   Go_Macro('norm',sRoot+ sRepo        +sFolder,sFile     ,sType ,sRoot+'TEMP_expand/'     +sFolder                         );//> Expand macros with results going to a sub-directory (intermediate results of 2 stages of processing are saved).
    EnsurePathExists(                                              sRoot+'TEMP_PrettyMain/' +sFolder                         );//> If the sub-folder for Notes version of prettified code does not exist, then create it.
-   fs.copyFileSync(sRoot+'TEMP_expand/'+sFolder+sFile+'_2'+sType ,sRoot+'TEMP_PrettyMain/' +sFolder+sFile+ sType ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
-   require('child_process').execSync( 'prettier --write '       + sRoot+'TEMP_PrettyMain/' +sFolder+sFile+ sType            );//> run prettier via a synchronous system call, over-writing existing file.
+   fs.copyFileSync(sRoot+ sRepo        +sFolder+sFile+ sType     ,sRoot+'TEMP_PrettyMain/' +sFolder+sFile+ sType ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
+   require('child_process').execSync(sPRETTY                    + sRoot+'TEMP_PrettyMain/' +sFolder+sFile+ sType            );//> run prettier via a synchronous system call, over-writing existing file.
                                                                                                         //>
    Go_SwitchToNotes( sRoot ,sFolder ,sFile ,sType );                                                    //> Create or over-write prettified version. If Notes version does not exist yet, then create and line-number it now. Open in notepad++?
 return '';                                                                                              //> Report success.
@@ -100,7 +99,7 @@ return '';                                                                      
   Go_Macro( 'norm',sRoot+ sRepo        +sFolder,sFile     ,sType ,sRoot+'TEMP_expand/'     +sFolder                         );//> Expand macros with results going to a sub-directory (intermediate results of 2 stages of processing are saved).
   EnsurePathExists(                                               sRoot+'TEMP_PrettyNotes/'+sFolder                         );//> If the sub-folder for Notes version of prettified code does not exist, then create it.
   fs.copyFileSync( sRoot+'TEMP_expand/'+sFolder+sFile+'_2'+sType ,sRoot+'TEMP_PrettyNotes/'+sFolder+sFile+ sType ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
-  require('child_process').execSync( 'prettier --write '        + sRoot+'TEMP_PrettyNotes/'+sFolder+sFile+ sType            );//> run prettier via a synchronous system call, over-writing existing file.
+  require('child_process').execSync( sPRETTY                    + sRoot+'TEMP_PrettyNotes/'+sFolder+sFile+ sType            );//> run prettier via a synchronous system call, over-writing existing file.
                                                                                                         //>
   // Compare TEMP_MACRO and TEMP_MAIN files.                                                            //>
                                                                                                         //>
@@ -275,7 +274,7 @@ function                                Go_Macro(///////////////////////////////
 ,                                       a_sOutPath                                                      //> * Output path,
 ){                                      //////////////////////////////////////////////////////////////////>
  const                                  sPATHfILEiN             = a_sInPath + a_sFile + a_sExt;         //>
-console.log('Go_Macro ',a_sMode +' In:'+ sPATHfILEiN +' Out:'+ a_sOutPath+a_sFile+a_sExt );             //>
+console.log('Go_Macro ',a_sMode +' In:'+ sPATHfILEiN );                                                 //>
  const                                  sDATA                   = fs.readFileSync(sPATHfILEiN,'UTF-8'); //>
  const                                  asLINES                 = sDATA.split("\n");                    //>
  var                                    r_s                     = 'var g_sMode="'+ a_sMode +'";' +"\n"; //>
@@ -301,12 +300,8 @@ console.log('Go_Macro 2');                                                      
                                                                                                         //>
  r_s = r_s.split('\\').join('\\\\');                                                                    //> Work-around escape of backslash at this point (should be done in later step).
                                                                                                         //>
- if( !fs.existsSync(a_sOutPath) ){                                                                      //> If the Notes sub-folder does not exist, then
-  fs.mkdirSync(     a_sOutPath ,{recursive:true} );                                                     //> create it now, recursively.
- }//if                                                                                                  //> .
-console.log('Go_Macro 3');                                                                              //>
-                                                                                                        //>
-                                                                                                        //>
+console.log('Go_Macro 3 Out:'+                               a_sOutPath+a_sFile+'_1'+a_sExt     );      //>
+ EnsurePathExists(                                           a_sOutPath                         );      //> If the Notes sub-folder does not exist, then create it now, recursively.
  fs.writeFileSync(                                           a_sOutPath+a_sFile+'_1'+a_sExt,r_s );      //> Save this intermediate file.
 console.log('Go_Macro 4');                                                                              //>
                                                                                                         //>
