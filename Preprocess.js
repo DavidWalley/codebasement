@@ -76,46 +76,51 @@ function                                sGo(////////////////////////////////////
  var                                    sPath                   = process.argv[3].split('\\').join('/');//> Convert Windows to UNIX path delimiters.
  var                                    asPath                  = avGo_ParsePathFileName( sPath );      //>
  var                                    sRoot                   = asPath[0];                            //>
- var                                    sRepo                   = asPath[1];                            //>
- var                                    sFolder                 = asPath[2];                            //>
+ var                                    sRepo                   = asPath[1];                            //> Filled iff 'repo_MAIN' or 'repo_NOTES' seen.
+ var                                    sFolder                 = asPath[2];                            //> Filled iff 'repo_MAIN' or 'repo_NOTES' seen.
  var                                    sFile                   = asPath[3];                            //>
- var                                    sType                   = asPath[4];                            //>
- if( sType !== '.js'   &&   sType !== '.java' ){                                                        //> If not a javascript file, then
+ var                                    sType                   = asPath[4];                            //> Extension (with leading '.').
+ if( sType !== '.js'   &&   sType !== '.java' ){                                                        //> If not a javascript file nor java, then
 return 'Not a javascript nor java file.';                                                               //> fail gracefully
  }//if                                                                                                  //> .
                                                                                                         //>
- var                                    sPath                   = sRoot + sRepo;                        //>
-                                                                                                        //>
- switch( sCommand ){                                                                                    //>
+ switch( sCommand ){                                                                                    //> Depending on command line parameter...
  case 'P': case 'p':                                                                                    //> If request is to process current file, then...
                                                                                                         console.log('--------- Process');   console.log('--------- Process');//>
-  if( 'repo_MAIN/' === sRepo ){                                                                         //> If currently looking at the MAIN version of a file, then
-   Go_SwitchToNotes( sRoot ,sFolder ,sFile ,sType );                                                    //> if Notes version does not exist yet, then create and line-number it now. Open in notepad++?
+  if( 'repo_MAIN/' === sRepo ){                                                                         //> If currently looking at the MAIN version of a file, then Prettify main repo to TEMP_MAIN
+   Go_Macro('norm',sRoot+ sRepo        +sFolder,sFile     ,sType ,sRoot+'TEMP_expand/'     +sFolder                         );//> Expand macros with results going to a sub-directory (intermediate results of 2 stages of processing are saved).
+   EnsurePathExists(                                              sRoot+'TEMP_PrettyMain/' +sFolder                         );//> If the sub-folder for Notes version of prettified code does not exist, then create it.
+   fs.copyFileSync(sRoot+'TEMP_expand/'+sFolder+sFile+'_2'+sType ,sRoot+'TEMP_PrettyMain/' +sFolder+sFile+ sType ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
+   require('child_process').execSync( 'prettier --write '       + sRoot+'TEMP_PrettyMain/' +sFolder+sFile+ sType            );//> run prettier via a synchronous system call, over-writing existing file.
+                                                                                                        //>
+   Go_SwitchToNotes( sRoot ,sFolder ,sFile ,sType );                                                    //> Create or over-write prettified version. If Notes version does not exist yet, then create and line-number it now. Open in notepad++?
 return '';                                                                                              //> Report success.
   }//if                                                                                                 //>
+                                                                                                        //> If not within the MAIN source code repo, then...
+  Go_Macro( 'norm',sRoot+ sRepo        +sFolder,sFile     ,sType ,sRoot+'TEMP_expand/'     +sFolder                         );//> Expand macros with results going to a sub-directory (intermediate results of 2 stages of processing are saved).
+  EnsurePathExists(                                               sRoot+'TEMP_PrettyNotes/'+sFolder                         );//> If the sub-folder for Notes version of prettified code does not exist, then create it.
+  fs.copyFileSync( sRoot+'TEMP_expand/'+sFolder+sFile+'_2'+sType ,sRoot+'TEMP_PrettyNotes/'+sFolder+sFile+ sType ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
+  require('child_process').execSync( 'prettier --write '        + sRoot+'TEMP_PrettyNotes/'+sFolder+sFile+ sType            );//> run prettier via a synchronous system call, over-writing existing file.
                                                                                                         //>
-  Go_Macro( 'norm' ,sPath               +sFolder,sFile     ,sType ,sRoot+'TEMP_expand/'     +sFolder,sFile ,sType);//> Expand macros with results going to a sub-directory.
-                                                                                                        //>
-  EnsurePathExists(                                                  sRoot+'TEMP_PrettyNotes/'+sFolder );//>
-  fs.copyFileSync(    sRoot+'TEMP_expand/'+sFolder+sFile+'_2'+sType ,sRoot+'TEMP_PrettyNotes/'+sFolder+sFile+sType ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
-  require('child_process').execSync( 'prettier --write '           + sRoot+'TEMP_PrettyNotes/'+sFolder+sFile+sType);//> run prettier via a synchronous system call, over-writing existing file.
-  // Prettify main repo to TEMP_MAIN                                                                    //>
   // Compare TEMP_MACRO and TEMP_MAIN files.                                                            //>
+                                                                                                        //>
 return '';                                                                                              //> Report success.
                                                                                                         //>
                                                                                                         //>
  case 'T': case 't':                                                                                    //> If request is for Macro expansion for tests, and then running.
-                                                                                                        console.log('--------- Tests');   console.log('--------- Tests');   console.log( sPath + sFolder + sFile + sType );//>
-  Go_Macro( 'test' ,sPath               ,sFile    ,sType   ,sRoot+'TEMP_Tests/'      ,sFile     ,sType);//> Expand macros with 'test' parameter, with results going to a sub-directory.
-  var     bits = require('child_process').execSync('node "'+sRoot+'TEMP_Tests/'+      sFile+'_2'+sType+'"');//> Execute intermediate file as JavaScript using node, saving its console.log output.
-  fs.writeFileSync( sPath+'TEMP_Tests/results.txt' ,bits ,"binary" ,function(err){} );                  //> Save this preprocessed file.
+                                                                                                       console.log('--------- Tests');   console.log('--------- Tests');   console.log( sRoot + sRepo + sFolder + sFile + sType );//>
+  Go_Macro( 'test',sRoot+ sRepo                ,sFile     ,sType ,sRoot+'TEMP_Tests/'                                    );//> Expand macros with 'test' parameter, with results going to a sub-directory.
+  var     bits = require('child_process').execSync('node "'+      sRoot+'TEMP_Tests/'+              sFile+'_2'+sType+'"' );//> Execute intermediate file as JavaScript using node, saving its console.log output.
+  fs.writeFileSync(                                        sRoot+ sRepo+'TEMP_Tests/results.txt'        //> Save this preprocessed file.
+  ,       bits ,"binary" ,function(err){}                                                               //>
+  );                                                                                                    //>
 return '';                                                                                              //> Report success.
                                                                                                         //>
                                                                                                         //>
  case 'N': case 'n':                                                                                    //> If request is for Neatification:
-                                                                                                        console.log('--------- Neatify');   console.log('--------- Neatify');   console.log( sPath + sFolder + sFile + sType );//>
-  Go_ScanFile( Go_ScanFile_sSnippets_Line   ,sPath+sFolder+sFile+sType   ,sPath+sFolder+sFile+sType );  //>
-  Go_ScanFile( Go_ScanFile_sNeat_Line       ,sPath+sFolder+sFile+sType   ,sPath+sFolder+sFile+sType );  //>
+                                                                                                        console.log('--------- Neatify');   console.log('--------- Neatify');   console.log( sRoot + sRepo + sFolder + sFile + sType );//>
+  Go_ScanFile( Go_ScanFile_sSnippets_Line   ,sRoot + sRepo+sFolder+sFile+sType   ,sRoot + sRepo+sFolder+sFile+sType );//>
+  Go_ScanFile( Go_ScanFile_sNeat_Line       ,sRoot + sRepo+sFolder+sFile+sType   ,sRoot + sRepo+sFolder+sFile+sType );//>
 return '';                                                                                              //> Report success.
  }//switch                                                                                              //> Otherwise:
                                                                                                         //>
@@ -127,7 +132,7 @@ function                                EnsurePathExists(///////////////////////
                                         a_sPath                                                         //>
 ){                                      //////////////////////////////////////////////////////////////////>
  if( !fs.existsSync(a_sPath) ){                                                                         //> If the Notes sub-folder does not exist, then
-  fs.mkdirSync(     a_sPath ,{recursive:true} );                                                        //> create it now, recursively.
+  fs.mkdirSync(     a_sPath ,{recursive:true} );                                                        //> create it now, recursively
  }//if                                                                                                  //> .
 }//EnsurePathExists///////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
@@ -141,11 +146,10 @@ function                                Go_SwitchToNotes(///////////////////////
  var                                    sPathMain               = a_sRoot +'repo_MAIN/' + a_sFolder;    //>
  var                                    sPathNotes              = a_sRoot +'repo_NOTES/'+ a_sFolder;    //>
  var                                    sPathFile               = sPathNotes + a_sFile+a_sType;         //>
- EnsurePathExists(sPathNotes);                                                                          //>
+ EnsurePathExists(sPathNotes);                                                                          //> If the Notes sub-folder does not exist, then create it.
  if( !fs.existsSync(sPathFile) ){                                                                       //> If the Notes sub-folder does not exist, then
   Go_ScanFile( Go_ScanFile_NotesCopy_Line   ,sPathMain + a_sFile+a_sType   ,sPathFile );                //> Create a new copy of the file, one line at a time.
  }//if                                                                                                  //>
-                                                                                                        //>
                                                                                                         //>
  require('child_process').execSync( 'start notepad++ ' +sPathFile );                                    //> Issue system command to open the result file in Notepad++.
 }//Go_SwitchToNotes///////////////////////////////////////////////////////////////////////////////////////>
@@ -263,19 +267,15 @@ return sCode.padEnd(          iSLIDEtO ,'/') +'//>'+ sComments +"\n";           
 }/////////////////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                Go_Macro(/////////////////////////////////////////////////////////> *
-                                        a_sMode                                                         //> *
-,                                       a_sInPath                                                       //> *
-,                                       a_sInFile                                                       //> *
-,                                       a_sInExt                                                        //> *
-,                                       a_sOutPath                                                      //> *
-,                                       a_sOutFile                                                      //> *
-,                                       a_sOutExt                                                       //> *
+function                                Go_Macro(/////////////////////////////////////////////////////////> * Process (macro-expand) a source code file.
+                                        a_sMode                                                         //> * Parameter that is passed into JS macro code for its use. 'test' is generally used to generate automated test code.
+,                                       a_sInPath                                                       //> * Input path,
+,                                       a_sFile                                                         //> * file, and
+,                                       a_sExt                                                          //> * extension.
+,                                       a_sOutPath                                                      //> * Output path,
 ){                                      //////////////////////////////////////////////////////////////////>
-console.log('Go_Macro 0 ',a_sMode);                                                                     //>
-console.log(a_sInPath ,a_sInFile ,a_sInExt );                                                           //>
-console.log(a_sOutPath,a_sOutFile,a_sOutExt );                                                          //>
- const                                  sPATHfILEiN             = a_sInPath + a_sInFile + a_sInExt;     //>
+ const                                  sPATHfILEiN             = a_sInPath + a_sFile + a_sExt;         //>
+console.log('Go_Macro ',a_sMode +' In:'+ sPATHfILEiN +' Out:'+ a_sOutPath+a_sFile+a_sExt );             //>
  const                                  sDATA                   = fs.readFileSync(sPATHfILEiN,'UTF-8'); //>
  const                                  asLINES                 = sDATA.split("\n");                    //>
  var                                    r_s                     = 'var g_sMode="'+ a_sMode +'";' +"\n"; //>
@@ -307,13 +307,13 @@ console.log('Go_Macro 2');                                                      
 console.log('Go_Macro 3');                                                                              //>
                                                                                                         //>
                                                                                                         //>
- fs.writeFileSync(                                           a_sOutPath+a_sOutFile+'_1'+a_sOutExt,r_s );//> Save this intermediate file.
+ fs.writeFileSync(                                           a_sOutPath+a_sFile+'_1'+a_sExt,r_s );      //> Save this intermediate file.
 console.log('Go_Macro 4');                                                                              //>
                                                                                                         //>
- var    binary = require('child_process').execSync('node "'+ a_sOutPath+a_sOutFile+'_1'+a_sOutExt +'"');//> Execute intermediate file as JavaScript using node, saving its console.log output.
+ var    binary = require('child_process').execSync('node "'+ a_sOutPath+a_sFile+'_1'+a_sExt +'"');      //> Execute intermediate file as JavaScript using node, saving its console.log output.
 console.log('Go_Macro 5');                                                                              //>
                                                                                                         //>
- fs.writeFileSync( a_sOutPath+a_sOutFile+'_2'+a_sOutExt ,binary ,"binary" ,function(err){} );           //> Save this preprocessed file.
+ fs.writeFileSync( a_sOutPath+a_sFile+'_2'+a_sExt ,binary ,"binary" ,function(err){} );                 //> Save this preprocessed file.
 console.log('Go_Macro 99');                                                                             //>
 }//Go_Macro///////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
