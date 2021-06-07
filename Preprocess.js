@@ -70,6 +70,16 @@ const                                   fs                      = require('fs');
 //  +-------------------+                                                                               //>
                                                                                                         //>
                                                                                                         //>
+function                                RemoveNewlines(///////////////////////////////////////////////////>
+                                        a_sPathFile                                                     //>
+){                                      //////////////////////////////////////////////////////////////////>
+ Go_ScanFile(                                                                                           //>
+  function(a_sLine){   return a_sLine +' ';   }                                                         //>
+ ,a_sPathFile ,a_sPathFile                                                                              //>
+ );                                                                                                     //>
+}//RemoveNewlines/////////////////////////////////////////////////////////////////////////////////////////>
+                                                                                                        //>
+                                                                                                        //>
 function                                sGo(//////////////////////////////////////////////////////////////> * Main execution of this file starts here.
 ){                                      //////////////////////////////////////////////////////////////////> *
  var                                    sCommand                = process.argv[2][0];                   //> First letter of first parameter is the action to be taken, as detailed below.
@@ -80,46 +90,55 @@ function                                sGo(////////////////////////////////////
  var                                    sFolder                 = asPath[2];                            //> Filled iff 'repo_MAIN' or 'repo_NOTES' seen.
  var                                    sFile                   = asPath[3];                            //>
  var                                    sType                   = asPath[4];                            //> Extension (with leading '.').
+ var                                    R                       = sRoot + sRepo            ;            //>
+ const                                  P                       = sRoot +'TEMP_MainPretty/';            //>
+ const                                  Q                       = sRoot +'TEMP_ProofMain/' ;            //>
+ const                                  N                       = sRoot +'TEMP_ProofNotes/';            //>
+ const                                  E                       = sRoot +'TEMP_expand/'    ;            //>
+ const                                  T                       = sRoot +'TEMP_tests/'     ;            //>
  if( sType !== '.js'   &&   sType !== '.java' ){                                                        //> If not a javascript file nor java, then
 return 'Not a javascript nor java file.';                                                               //> fail gracefully
  }//if                                                                                                  //> .
                                                                                                         //>
  switch( sCommand ){                                                                                    //> Depending on command line parameter...
- case 'P': case 'p':                                                                                    //> If request is to process current file, then...
-  const                   sPRETTY = 'prettier --write --print-width 120 --single-quote --tab-width 4 ';    console.log('--------- Process');   console.log('--------- Process');//>
+ case 'P': case 'p':                                                                                    console.log('*** Process');   console.log('*** Process');//> If request is to process current file, then...
+  const                   sPRETTY = 'prettier --write --print-width 120 --single-quote --tab-width 4 '; //>
   if( 'repo_MAIN/' === sRepo ){                                                                         //> If currently looking at the MAIN version of a file, then Prettify main repo to TEMP_MAIN
-   EnsurePathExists(                                              sRoot+'TEMP_PrettyMain/' +sFolder                         );//> If the sub-folder for Notes version of prettified code does not exist, then create it.
-   fs.copyFileSync(sRoot+ sRepo        +sFolder+sFile+ sType     ,sRoot+'TEMP_PrettyMain/' +sFolder+sFile+ sType ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
-   require('child_process').execSync(sPRETTY                    + sRoot+'TEMP_PrettyMain/' +sFolder+sFile+ sType            );//> run prettier via a synchronous system call, over-writing existing file.
+   EnsurePathExists(                                        P+ sFolder                              );  //> If the sub-folder for Notes version of prettified code does not exist, then create it.
+   fs.copyFileSync(           R+ sFolder+ sFile+     sType ,P+ sFolder +sFile+'_s'+sType ,(err)=>{} );  //> Copy the second intermediate result to the prettified source file directory, and
+   require('child_process').execSync(sPRETTY+               P+ sFolder +sFile+'_s'+sType            );  //> run prettier via a synchronous system call, over-writing existing file.
                                                                                                         //>
-   Go_SwitchToNotes( sRoot ,sFolder ,sFile ,sType );                                                    //> Create or over-write prettified version. If Notes version does not exist yet, then create and line-number it now. Open in notepad++?
+   fs.copyFileSync(           R+ sFolder+ sFile+     sType ,Q+ sFolder +sFile+     sType ,(err)=>{} );  //> Copy the second intermediate result to the prettified source file directory, and
+   RemoveNewlines(                                          Q+ sFolder +sFile+     sType            );  //>
+   require('child_process').execSync(sPRETTY+               Q+ sFolder +sFile+     sType            );  //> run prettier via a synchronous system call, over-writing existing file.
+                                                                                                        //>
+   Go_SwitchToNotes(      sRoot ,sFolder ,sFile     ,sType                                          );  //> Create or over-write prettified version. If Notes version does not exist yet, then create and line-number it now. Open in notepad++?
 return '';                                                                                              //> Report success.
   }//if                                                                                                 //>
                                                                                                         //> If not within the MAIN source code repo, then...
-  Go_Macro( 'norm',sRoot+ sRepo        +sFolder,sFile     ,sType ,sRoot+'TEMP_expand/'     +sFolder                         );//> Expand macros with results going to a sub-directory (intermediate results of 2 stages of processing are saved).
-  EnsurePathExists(                                               sRoot+'TEMP_PrettyNotes/'+sFolder                         );//> If the sub-folder for Notes version of prettified code does not exist, then create it.
-  fs.copyFileSync( sRoot+'TEMP_expand/'+sFolder+sFile+'_2'+sType ,sRoot+'TEMP_PrettyNotes/'+sFolder+sFile+ sType ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
-  require('child_process').execSync( sPRETTY                    + sRoot+'TEMP_PrettyNotes/'+sFolder+sFile+ sType            );//> run prettier via a synchronous system call, over-writing existing file.
+  Go_Macro( 'norm'           ,R+ sFolder ,sFile     ,sType ,E+ sFolder                              );  //> Expand macros with results going to a sub-directory (intermediate results of 2 stages of processing are saved).
+  EnsurePathExists(                                         N+ sFolder                              );  //> If the sub-folder for Notes version of prettified code does not exist, then create it.
+  fs.copyFileSync(            E+ sFolder+ sFile+'_2'+sType ,N+ sFolder +sFile+     sType ,(err)=>{} );  //> Copy the second intermediate result to the prettified source file directory, and
+  RemoveNewlines(                                           N+ sFolder +sFile+     sType            );  //>
+  require('child_process').execSync( sPRETTY+               N+ sFolder +sFile+     sType            );  //> run prettier via a synchronous system call, over-writing existing file.
                                                                                                         //>
   // Compare TEMP_MACRO and TEMP_MAIN files.                                                            //>
                                                                                                         //>
 return '';                                                                                              //> Report success.
                                                                                                         //>
                                                                                                         //>
- case 'T': case 't':                                                                                    //> If request is for Macro expansion for tests, and then running.
-                                                                                                       console.log('--------- Tests');   console.log('--------- Tests');   console.log( sRoot + sRepo + sFolder + sFile + sType );//>
-  Go_Macro( 'test',sRoot+ sRepo                ,sFile     ,sType ,sRoot+'TEMP_Tests/'                                    );//> Expand macros with 'test' parameter, with results going to a sub-directory.
-  var     bits = require('child_process').execSync('node "'+      sRoot+'TEMP_Tests/'+              sFile+'_2'+sType+'"' );//> Execute intermediate file as JavaScript using node, saving its console.log output.
-  fs.writeFileSync(                                        sRoot+ sRepo+'TEMP_Tests/results.txt'        //> Save this preprocessed file.
+ case 'T': case 't':                                                                                    console.log('*** Tests');   console.log('*** Tests');   console.log( sRoot + sRepo + sFolder + sFile + sType );//> If request is for Macro expansion for tests, and then running.
+  Go_Macro( 'test',sRoot+ sRepo          ,sFile     ,sType  ,T                             );           //> Expand macros with 'test' parameter, with results going to a sub-directory.
+  var     bits = require('child_process').execSync('node "'+ T+       sFile+'_2'+sType+'"' );           //> Execute intermediate file as JavaScript using node, saving its console.log output.
+  fs.writeFileSync(                                          T+'results.txt'                            //> Save this preprocessed file.
   ,       bits ,"binary" ,function(err){}                                                               //>
   );                                                                                                    //>
 return '';                                                                                              //> Report success.
                                                                                                         //>
                                                                                                         //>
- case 'N': case 'n':                                                                                    //> If request is for Neatification:
-                                                                                                        console.log('--------- Neatify');   console.log('--------- Neatify');   console.log( sRoot + sRepo + sFolder + sFile + sType );//>
-  Go_ScanFile( Go_ScanFile_sSnippets_Line   ,sRoot + sRepo+sFolder+sFile+sType   ,sRoot + sRepo+sFolder+sFile+sType );//>
-  Go_ScanFile( Go_ScanFile_sNeat_Line       ,sRoot + sRepo+sFolder+sFile+sType   ,sRoot + sRepo+sFolder+sFile+sType );//>
+ case 'N': case 'n':                                                                                    console.log('*** Neatify');   console.log('*** Neatify');   console.log( sRoot + sRepo + sFolder + sFile + sType );//> If request is for Neatification:
+  Go_ScanFile( Go_ScanFile_sSnippets_Line ,sRoot+sRepo+sFolder+sFile+sType ,sRoot+sRepo+sFolder+sFile+sType );//>
+  Go_ScanFile( Go_ScanFile_sNeat_Line     ,sRoot+sRepo+sFolder+sFile+sType ,sRoot+sRepo+sFolder+sFile+sType );//>
 return '';                                                                                              //> Report success.
  }//switch                                                                                              //> Otherwise:
                                                                                                         //>
