@@ -92,8 +92,8 @@ function                                sGo(////////////////////////////////////
  var                                    sType                   = asPath[4];                            //> Extension (with leading '.').
  var                                    R                       = sRoot + sRepo            ;            //>
  const                                  P                       = sRoot +'TEMP_MainPretty/';            //>
- const                                  Q                       = sRoot +'TEMP_ProofMain/' ;            //>
- const                                  N                       = sRoot +'TEMP_ProofNotes/';            //>
+ const                                  Q                       = sRoot +'TEMP_ProofMain/' ;            //> Collapsed and prettified - for comparison.
+ const                                  N                       = sRoot +'TEMP_ProofNotes/';            //> Collapsed and prettified - for comparison.
  const                                  E                       = sRoot +'TEMP_expand/'    ;            //>
  const                                  T                       = sRoot +'TEMP_tests/'     ;            //>
  if( sType !== '.js'   &&   sType !== '.java' ){                                                        //> If not a javascript file nor java, then
@@ -102,25 +102,27 @@ return 'Not a javascript nor java file.';                                       
                                                                                                         //>
  switch( sCommand ){                                                                                    //> Depending on command line parameter...
  case 'P': case 'p':                                                                                    console.log('*** Process');   console.log('*** Process');//> If request is to process current file, then...
-  const                   sPRETTY = 'prettier --write --print-width 120 --single-quote --tab-width 4 '; //>
+  const                                 sPRETTY                 =                                       //> Set a few of prettiers options - to match existing source code (for easier comparison).
+              'prettier --write --print-width 120 --single-quote --tab-width 4 --trailing-comma none '; //>
   if( 'repo_MAIN/' === sRepo ){                                                                         //> If currently looking at the MAIN version of a file, then Prettify main repo to TEMP_MAIN
-   EnsurePathExists(                                        P+ sFolder                              );  //> If the sub-folder for Notes version of prettified code does not exist, then create it.
-   fs.copyFileSync(           R+ sFolder+ sFile+     sType ,P+ sFolder +sFile+'_s'+sType ,(err)=>{} );  //> Copy the second intermediate result to the prettified source file directory, and
-   require('child_process').execSync(sPRETTY+               P+ sFolder +sFile+'_s'+sType            );  //> run prettier via a synchronous system call, over-writing existing file.
+   EnsurePathExists(                                        P+ sFolder                               ); //> If the sub-folder for Notes version of prettified code does not exist, then create it.
+   fs.copyFileSync(           R+ sFolder+ sFile+     sType ,P+ sFolder +sFile      +sType ,(err)=>{} ); //> Copy the second intermediate result to the prettified source file directory, and
+   require('child_process').execSync(sPRETTY+               P+ sFolder +sFile      +sType            ); //> run prettier via a synchronous system call, over-writing existing file.
                                                                                                         //>
-   fs.copyFileSync(           R+ sFolder+ sFile+     sType ,Q+ sFolder +sFile+     sType ,(err)=>{} );  //> Copy the second intermediate result to the prettified source file directory, and
-   RemoveNewlines(                                          Q+ sFolder +sFile+     sType            );  //>
-   require('child_process').execSync(sPRETTY+               Q+ sFolder +sFile+     sType            );  //> run prettier via a synchronous system call, over-writing existing file.
+   EnsurePathExists(                                        Q+ sFolder                               ); //> If the sub-folder for Notes version of prettified code does not exist, then create it.
+   fs.copyFileSync(           R+ sFolder+ sFile+     sType ,Q+ sFolder +sFile+'_pr'+sType ,(err)=>{} ); //> Copy the second intermediate result to the prettified source file directory, and
+   RemoveNewlines(                                          Q+ sFolder +sFile+'_pr'+sType            ); //>
+   require('child_process').execSync(sPRETTY+               Q+ sFolder +sFile+'_pr'+sType            ); //> run prettier via a synchronous system call, over-writing existing file.
                                                                                                         //>
-   Go_SwitchToNotes(      sRoot ,sFolder ,sFile     ,sType                                          );  //> Create or over-write prettified version. If Notes version does not exist yet, then create and line-number it now. Open in notepad++?
+   Go_SwitchToNotes(      sRoot ,sFolder ,sFile     ,sType                                           ); //> Create or over-write prettified version. If Notes version does not exist yet, then create and line-number it now. Open in notepad++?
 return '';                                                                                              //> Report success.
   }//if                                                                                                 //>
                                                                                                         //> If not within the MAIN source code repo, then...
-  Go_Macro( 'norm'           ,R+ sFolder ,sFile     ,sType ,E+ sFolder                              );  //> Expand macros with results going to a sub-directory (intermediate results of 2 stages of processing are saved).
-  EnsurePathExists(                                         N+ sFolder                              );  //> If the sub-folder for Notes version of prettified code does not exist, then create it.
-  fs.copyFileSync(            E+ sFolder+ sFile+'_2'+sType ,N+ sFolder +sFile+     sType ,(err)=>{} );  //> Copy the second intermediate result to the prettified source file directory, and
-  RemoveNewlines(                                           N+ sFolder +sFile+     sType            );  //>
-  require('child_process').execSync( sPRETTY+               N+ sFolder +sFile+     sType            );  //> run prettier via a synchronous system call, over-writing existing file.
+  Go_Macro( 'norm'           ,R+ sFolder ,sFile     ,sType ,E+ sFolder                               ); //> Expand macros with results going to a sub-directory (intermediate results of 2 stages of processing are saved).
+  EnsurePathExists(                                         N+ sFolder                               ); //> If the sub-folder for Notes version of prettified code does not exist, then create it.
+  fs.copyFileSync(            E+ sFolder+ sFile+'_2'+sType ,N+ sFolder +sFile+'_pr'+sType ,(err)=>{} ); //> Copy the second intermediate result to the prettified source file directory, and
+  RemoveNewlines(                                           N+ sFolder +sFile+'_pr'+sType            ); //>
+  require('child_process').execSync( sPRETTY+               N+ sFolder +sFile+'_pr'+sType            ); //> run prettier via a synchronous system call, over-writing existing file.
                                                                                                         //>
   // Compare TEMP_MACRO and TEMP_MAIN files.                                                            //>
                                                                                                         //>
@@ -178,7 +180,7 @@ function                                Go_ScanFile_NotesCopy_Line(/////////////
 ,                                       a_sPathFileIn                                                   //> *
 ,                                       a_iAt                                                           //> * Source code line number (0 is first line), or -1 for last line of the file.
 ){                                      //////////////////////////////////////////////////////////////////> *
- if( 0 < a_iAt ){                                                                                       //> If not the end of the file
+ if( 0 <= a_iAt ){                                                                                      //> If not the end of the file
   var                                   sLine                   = a_sLine.split("\t").join('    ');     //>
   var                                   nIndents                = sLine.length -sLine.trimLeft().length;//>
   var                                   r_s                     = ''.padEnd(nIndents/4);                //>
@@ -191,7 +193,6 @@ return '';                                                                      
 return ('// '+ a_sPathFileIn +' - '                              ).padEnd(104)+'//>'+"\n"               //> start with standard header and
       +('// (c)2021 David C. Walley'                             ).padEnd(104)+'//>'+"\n"               //> copyright notice.
       +(' '                                                      ).padEnd(104)+'//>'+"\n"               //>
-      +('/**/// console.log(\'/* g_sMode= \'+ g_sMode +\' */\');').padEnd(104)+'//>'+"\n"               //> Set up for macro use. Variable passed in from tool-chain command.
       +('/**/// console.log(`'                                   ).padEnd(104)+'//>'+"\n"               //> Start multi-line text string of code:
       + r_s                                                                                             //>
    ;                                                                                                    //>
@@ -293,7 +294,6 @@ function                                Go_Macro(///////////////////////////////
 ,                                       a_sOutPath                                                      //> * Output path,
 ){                                      //////////////////////////////////////////////////////////////////>
  const                                  sPATHfILEiN             = a_sInPath + a_sFile + a_sExt;         //>
-console.log('Go_Macro ',a_sMode +' In:'+ sPATHfILEiN );                                                 //>
  const                                  sDATA                   = fs.readFileSync(sPATHfILEiN,'UTF-8'); //>
  const                                  asLINES                 = sDATA.split("\n");                    //>
  var                                    r_s                     = 'var g_sMode="'+ a_sMode +'";' +"\n"; //>
@@ -315,20 +315,15 @@ console.log('Go_Macro ',a_sMode +' In:'+ sPATHfILEiN );                         
   s = s.trim();                                                                                         //> put everything on one line (and let Prettier sort it out).
   r_s += s + (( '' === s )?"\n\n" :' ');                                                                //> Preserve blank lines, otherwise put everything on one line and let Prettier sort it out (but leave multi-line comments alone).
  }//for iLine                                                                                           //>
-console.log('Go_Macro 2');                                                                              //>
                                                                                                         //>
  r_s = r_s.split('\\').join('\\\\');                                                                    //> Work-around escape of backslash at this point (should be done in later step).
                                                                                                         //>
-console.log('Go_Macro 3 Out:'+                               a_sOutPath+a_sFile+'_1'+a_sExt     );      //>
  EnsurePathExists(                                           a_sOutPath                         );      //> If the Notes sub-folder does not exist, then create it now, recursively.
  fs.writeFileSync(                                           a_sOutPath+a_sFile+'_1'+a_sExt,r_s );      //> Save this intermediate file.
-console.log('Go_Macro 4');                                                                              //>
                                                                                                         //>
  var    binary = require('child_process').execSync('node "'+ a_sOutPath+a_sFile+'_1'+a_sExt +'"');      //> Execute intermediate file as JavaScript using node, saving its console.log output.
-console.log('Go_Macro 5');                                                                              //>
                                                                                                         //>
  fs.writeFileSync( a_sOutPath+a_sFile+'_2'+a_sExt ,binary ,"binary" ,function(err){} );                 //> Save this preprocessed file.
-console.log('Go_Macro 99');                                                                             //>
 }//Go_Macro///////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
