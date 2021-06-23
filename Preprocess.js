@@ -1,5 +1,5 @@
 // CodeBaseMent custom pre-processor and tool chains. Takes source files, such as itself, and generates tidied, macro expanded, and prettified output files.//>
-// (c)2021 David C. Walley                                                                              //>
+// (c)2021 Mindfuel Inc., all rights reserved                                                           //>
                                                                                                         //>
 /**/// // Example of line beginning with special sub-string, which will be removed for pre-processing.  //> Macro (in JavaScript) execution start. Example boilerplate code follows:
 /**/// console.log('/* g_sMode= '+ g_sMode +' */');                                                     //> log text strings you want to output to result of pre-processing. In this line we pass along a variable from tool-chain command - are we in 'norm' or 'test' mode?
@@ -44,13 +44,13 @@ const                                   fs                      = require('fs'  
 const                                   path                    = require('path');                      //> Handle directory and sub-directory conventions of various operating systems.
                                                                                                         //>
                                                                                                         //>
-eval( fs.readFileSync('C:/0mf/java-legacy/commits.js') +'' );                                           //>
+eval( fs.readFileSync('C:/0mf/java-legacy/commits.js') +'' );                                           //> Include a file defining commit history: g_mapasCommit[]
                                                                                                         //>
                                                                                                         //>
- const                                  asPathsFiles_recursive = function(////////////////////////////////> *
+const                                   asPathsFiles_recursive = function(////////////////////////////////>
                                         a_sPath                                                         //> *
 ,                                       a_afiles                                                        //> *
-){                                      //////////////////////////////////////////////////////////////////> *
+){                                      //////////////////////////////////////////////////////////////////>
  var                                    r_afiles                = a_afiles   ||   [];                   //> Default to empty list (first call).
  var                                    aentries                = fs.readdirSync(a_sPath);              //>
  var                                    s                       ;                                       //>
@@ -65,29 +65,28 @@ return r_afiles;                                                                
 }//asPathsFiles_recursive/////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                EnsurePathExists(/////////////////////////////////////////////////> *Create a directory if it does not already exist.
+function                                EnsurePathExists(/////////////////////////////////////////////////>
                                         a_sPath                                                         //> *
-){                                      //////////////////////////////////////////////////////////////////> *
+){                                      //////////////////////////////////////////////////////////////////>
  if( !fs.existsSync(a_sPath) ){                                                                         //> If the Notes sub-folder does not exist, then
   fs.mkdirSync(     a_sPath ,{recursive:true} );                                                        //> create it now, recursively
  }//if                                                                                                  //> .
 }//EnsurePathExists///////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                Execute(//////////////////////////////////////////////////////////> *
+function                                Execute(//////////////////////////////////////////////////////////>
                                         a_sCommand                                                      //> *
 ,                                       a_sPathFileOut                                                  //> * Results file.
-){                                      //////////////////////////////////////////////////////////////////> *
+){                                      //////////////////////////////////////////////////////////////////>
                                                                                                         console.log('Execute '+ a_sCommand);//>
  var                                    bits            = require('child_process').execSync(a_sCommand);//> Execute intermediate file as JavaScript using node, saving its console.log output.
-                                                                                                        console.log(bits);//>
  fs.writeFileSync( a_sPathFileOut ,bits ,"binary" ,function(err){} );                                   //>
 }//Execute////////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                avGo_ParsePathFileName(///////////////////////////////////////////> * Parse full path and file name, looking for evidence of our directory structure.
+function                                avGo_ParsePathFileName(///////////////////////////////////////////>
                                         a_sPathFile                                                     //> *
-){                                      //////////////////////////////////////////////////////////////////> *
+){                                      //////////////////////////////////////////////////////////////////>
  var                                    asPath                  = a_sPathFile.split(/[\\\/]/);          //> Split on slashes or backslashes.
  var                                    n                       = asPath.length - 1;                    //>
                                                                                                         //>
@@ -99,7 +98,7 @@ function                                avGo_ParsePathFileName(/////////////////
  var                                    s                       ;                                       //>
  var                                    i                       = 0;                                    //>
  for( i = 0; i < n; i++ ){   s = asPath[i];                                                             //> Split off root:
-  if( 'repo_MAIN' === s   ||   'repo_NOTES' === s ){                                                    //> If either of these is seen in the path, then assume they are in our standard duplicate repo directory structure.
+  if( 'repo_main' === s.toLowerCase()   ||   'repo_notes' === s.toLowerCase() ){                        //> If either of these is seen in the path, then assume they are in our standard duplicate repo directory structure.
    r_sRepo = s +'/';                                                                                    //>
    for( i++; i < n; i++ ){ r_sFolder += asPath[i] +'/'; }                                               //>
  break;                                                                                                 //>
@@ -152,42 +151,15 @@ afuncTests.push( function(){                                                    
 //  | Production code   |                                            Main                               //> Main repo source code - used for production - may not be prettified.
 //  | (normal git repo) |                                                                               //> MAIN/TEMP_PRETTY
 //  +-------------------+                                                                               //>
-const                                   g_sPRETTYm                   = 'TEMP_PrettyMAIN/';              //> subfolder containing Prettified main branch source code - suitable for copying standardized code back to the main repo.
-const                                   g_sPROOFm                   = 'TEMP_ProofMAIN/' ;               //> subfolder containing Collapsed and prettified MAIN code - for comparison with NOTES version.
-const                                   g_sPROOFn                   = 'TEMP_ProofNOTES/';               //> subfolder containing Collapsed and prettified NOTES code - for comparison.
-const                                   g_sTEMP                   = 'TEMP_temp/'      ;                 //> subfolder for intermediate results files.
-const                                   g_sTESTS                   = 'TEMP_tests/'     ;                //> subfolder for NOTES code that has been expanded in 'test' mode.
+const                                   g_sPRETTYm              = 'TEMP_PrettyMAIN/';                   //> subfolder containing Prettified main branch source code - suitable for copying standardized code back to the main repo.
+const                                   g_sPROOFm               = 'TEMP_ProofMAIN/' ;                   //> subfolder containing Collapsed and prettified MAIN code - for comparison with NOTES version.
+const                                   g_sPROOFn               = 'TEMP_ProofNOTES/';                   //> subfolder containing Collapsed and prettified NOTES code - for comparison.
+const                                   g_sTEMP                 = 'TEMP_temp/'      ;                   //> subfolder for intermediate results files.
+const                                   g_sTESTS                = 'TEMP_tests/'     ;                   //> subfolder for NOTES code that has been expanded in 'test' mode.
                                                                                                         //>
                                                                                                         //>
-function                                RemoveNewlines(///////////////////////////////////////////////////> *
-                                        a_sPathFile                                                     //> *
-){                                      //////////////////////////////////////////////////////////////////> *
- Go_ScanFile(                                                                                           //>
-  function(a ,a_sLine ,c,d){   return a_sLine +' ';   }                                                 //>
- ,[]                                                                                                    //>
- ,a_sPathFile ,a_sPathFile                                                                              //>
- );                                                                                                     //>
-}//RemoveNewlines/////////////////////////////////////////////////////////////////////////////////////////>
-                                                                                                        //>
-                                                                                                        //>
-function                                Prettier(/////////////////////////////////////////////////////////> *
-                                        a_sPathFile                                                     //> *
-){                                      //////////////////////////////////////////////////////////////////> *
- require('child_process').execSync( 'prettier'                                                          //> Run prettier via a synchronous system call, Set a few of prettiers options - to match existing source code (for easier comparison).
-                                   +' --write'                                                          //> over-writing existing file.
-                                   +' --print-width'   +' 120'                                          //>
-                                   +' --single-quote'                                                   //>
-                                   +' --tab-width'     +' 4'                                            //>
-                                   +' --trailing-comma'+' none'                                         //>
-                                   +' '+ a_sPathFile                                                    //>
-                                  );                                                                    //>
-// TweakPrettierResult()                                                                                //> Makes some find-and-replace tweaks to bring prettier's results into sync with existing code as much as possible.
- // Replace  'function (' with 'function( '.                                                            //>
-}//Prettier///////////////////////////////////////////////////////////////////////////////////////////////>
-                                                                                                        //>
-                                                                                                        //>
-function                                sGo(//////////////////////////////////////////////////////////////> * Main execution of this file starts here.
-){                                      //////////////////////////////////////////////////////////////////> *
+function                                sGo(//////////////////////////////////////////////////////////////>
+){                                      //////////////////////////////////////////////////////////////////>
  var                                    sCommand                = process.argv[2][0];                   //> First letter of first parameter is the action to be taken, as detailed below.
  var                                    sPath                   = process.argv[3].split('\\').join('/');//> Convert Windows to UNIX path delimiters.
  var                                    asPath                  = avGo_ParsePathFileName( sPath );      //>
@@ -196,6 +168,7 @@ function                                sGo(////////////////////////////////////
  var                                    sFolder                 = asPath[2];                            //> Filled iff 'repo_MAIN' or 'repo_NOTES' seen.
  var                                    sFile                   = asPath[3];                            //>
  var                                    sType                   = asPath[4];                            //> Extension (with leading '.').
+console.log(asPath);                                                                                    //>
  var                                    RM                      = sRoot + sRepo     ;                   //> MAIN repo - copy of (reasonable up-to-date) main branch source code.
  const                                  PRETTYm                 = sRoot + g_sPRETTYm;                   //> Directory of Prettified main branch source code - suitable for copying standardized code back to the main repo.
  const                                  PROOFm                  = sRoot + g_sPROOFm ;                   //> Directory of Collapsed and prettified MAIN code - for comparison with NOTES version.
@@ -208,16 +181,16 @@ return 'Not a javascript nor java file.';                                       
                                                                                                         //>
  switch( sCommand ){                                                                                    //> Depending on command line parameter...
  case 'P': case 'p':                                                                                    console.log('*** Process');   console.log('*** Process');//> If request is to process current file, then...
-  if( 'repo_MAIN/' === sRepo ){                                                                         //> If currently looking at the MAIN version of a file, then copy a prettified version of file to NOTES repo.
+  if( 'repo_main/' === sRepo.toLowerCase() ){                                                           //> If currently looking at the MAIN version of a file, then copy a prettified version of file to NOTES repo.
    EnsurePathExists(                                    PRETTYm+ sFolder                              );//> If the sub-folder for Notes version of prettified code does not exist, then create it.
    fs.copyFileSync( RM+      sFolder+ sFile+     sType ,PRETTYm+ sFolder+sFile      +sType ,(err)=>{} );//> Copy the main source code file to the prettified source file directory, and
-   Prettier(        PRETTYm+ sFolder+ sFile     +sType                                                );//> run prettier via a synchronous system call, over-writing existing file.
-                                                                                                        //> Create version for later comparisons, done in 'proof' directory on a file in-place:
+   Prettier(                                            PRETTYm+ sFolder+ sFile     +sType            );//> run prettier via a synchronous system call, over-writing existing file.
+                                                                                                        //> NOW, Create PROOF version for later comparisons, done in 'proof' directory on a file in-place:
    EnsurePathExists(                                    PROOFm + sFolder                              );//> If the sub-folder for Notes version of prettified code does not exist, then create it.
-   fs.copyFileSync( RM+      sFolder+ sFile+     sType ,PROOFm + sFolder+sFile+'_Mp'+sType ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
-   RemoveNewlines(                                      PROOFm + sFolder+sFile+'_Mp'+sType            );//> Prepare file for 'canonical' run of prettier (to get a consistent output when the only difference between code files is blank lines).
+   fs.copyFileSync( RM+      sFolder+ sFile+     sType ,PROOFm + sFolder+sFile+'_Mp'+sType ,(err)=>{} );//> Copy the main source code file to the proof version directory.
+   RemoveCommentsAndBlankLines(                         PROOFm + sFolder+sFile+'_Mp'+sType            );//> Prepare file for 'canonical' run of prettier (to get a consistent output when the only difference between code files is blank lines).
    Prettier(                                            PROOFm + sFolder+sFile+'_Mp'+sType            );//> Run prettier via a synchronous system call, over-writing existing file.
-   require('child_process').execSync('start notepad++ '+PROOFm + sFolder+sFile+'_Mp'+sType            );//> Open the result file in Notepad++.
+ //require('child_process').execSync('start notepad++ '+PROOFm + sFolder+sFile+'_Mp'+sType            );//> Open the result file in Notepad++.
                                                                                                         //> Open file version from NOTES (or start one):
    Go_SwitchToNotes(sRoot   ,sFolder ,sFile     ,sType ,TEMP                                          );//> If a Notes version of this file does not exist yet, then create, line-number it, and prepare it for macros now. Open in notepad++.
 return '';                                                                                              //> Report success.
@@ -227,7 +200,7 @@ return '';                                                                      
   Go_Macro( 'norm' ,RM+      sFolder ,sFile     ,sType ,TEMP   + sFolder                              );//> Expand macros with results going to a sub-directory (intermediate results of 2 stages of processing are saved).
   EnsurePathExists(                                     PROOFn + sFolder                              );//> If the sub-folder for Notes version of prettified code does not exist, then create it.
   fs.copyFileSync(TEMP+      sFolder+ sFile+'_2'+sType ,PROOFn + sFolder+sFile+'_pr'+sType ,(err)=>{} );//> Copy the second intermediate result to the prettified source file directory, and
-  RemoveNewlines(                                       PROOFn + sFolder+sFile+'_pr'+sType            );//> Prepare file for 'canonical' run of prettier (to get a consistent output when the only difference between code files is blank lines).
+  RemoveCommentsAndBlankLines(                          PROOFn + sFolder+sFile+'_pr'+sType            );//> Prepare file for 'canonical' run of prettier (to get a consistent output when the only difference between code files is blank lines).
   Prettier(                                             PROOFn + sFolder+sFile+'_pr'+sType            );//> Run prettier via a synchronous system call, over-writing existing file.
                                                                                                         //>
   require('child_process').execSync( 'start notepad++ '+PROOFn + sFolder+ sFile+'_pr'+sType           );//> Open the result file in Notepad++.
@@ -252,7 +225,6 @@ return '';                                                                      
                                                                                                         //>
                                                                                                         //>
  case 'D': case 'd':                                                                                    console.log('*** Directories');   console.log('*** Directories');//>
-//Execute( 'git --version' );                                                                           //>
   Execute( 'cd C:/0mf/java-legacy/repo_MAIN & git ls-files' ,'c:/$/RESULTS.txt');                       //> Execute system command to list files in git - output into a standard file.
   Go_ScanFile(                                                                                          //> For files listed in the results,
    function(a, a_sLine ,c,d){   return a_sLine +' *** Example of boilerplate.'+"\n";   }                //> Run an example routine
@@ -267,17 +239,64 @@ return 'Command "'+ sCommand +'" not recognized.';                              
 }//sGo////////////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                Go_SwitchToNotes(/////////////////////////////////////////////////> * If a Notes version of this file does not exist yet, then create, line-number it, and prepare it for macros now. Open in notepad++.
+function                                RemoveCommentsAndBlankLines(//////////////////////////////////////>
+                                        a_sPathFile                                                     //> *
+){                                      //////////////////////////////////////////////////////////////////>
+ Go_ScanFile(                                                                                           //>
+  function(a ,a_sLine ,c,d){                                                                            //> Remove inline comments
+   var                                  sCode                   = '';                                   //>
+   var                                  s                       = a_sLine.trim();                       //>
+   if( '/*' === s.slice(0,2) ){                                                                         //>
+    sCode = s;                                                                                          //> ??? bit of a kludge to avoid proper parsing on multi-line comment.
+   }else{                                                                                               //>
+    var                                 iChar                  = iSplitCodeComments('//',a_sLine+' //');//> Find split point between code and comments.
+    sCode = a_sLine.slice(0 ,iChar-1);                                                                  //>
+   }//if                                                                                                //>
+   s = sCode.trimEnd();                                                                                 //>
+   if( ''   === s                ){ return ''           ; }                                             //>
+   if( ';'  === s.slice(-1)      ){ return s +"\n"; }                                                   //> If code ending in a semi-colon then we can end the line.
+   if( '*/' === s.slice(-2)      ){ return s +"\n"; }                                                   //> If code ending in a semi-colon then we can end the line.
+  return                                   s +' ' ;                                                     //>
+  }//function                                                                                           //>
+ ,[]                                                                                                    //>
+ ,a_sPathFile ,a_sPathFile                                                                              //>
+ );                                                                                                     //>
+}//RemoveCommentsAndBlankLines////////////////////////////////////////////////////////////////////////////>
+                                                                                                        //>
+                                                                                                        //>
+function                                Prettier(/////////////////////////////////////////////////////////>
+                                        a_sPathFile                                                     //> *
+){                                      //////////////////////////////////////////////////////////////////>
+ require('child_process').execSync( 'prettier'                                                          //> Run prettier via a synchronous system call, Set a few of prettiers options - to match existing source code (for easier comparison).
+                                   +' --write'                                                          //> over-writing existing file.
+                                   +' --print-width'   +' 120'                                          //>
+                                   +' --single-quote'                                                   //>
+                                   +' --tab-width'     +' 4'                                            //> To match an existing code base.
+                                   +' --trailing-comma'+' none'                                         //>
+                                   +' '+ a_sPathFile                                                    //>
+                                  );                                                                    //>
+// TweakPrettierResult()                                                                                //> Makes some find-and-replace tweaks to bring prettier's results into sync with existing code as much as possible.
+ // Replace  'function (' with 'function( '.                                                            //>
+}//Prettier///////////////////////////////////////////////////////////////////////////////////////////////>
+                                                                                                        //>
+                                                                                                        //>
+function                                Go_SwitchToNotes(/////////////////////////////////////////////////>
                                         a_sRoot                                                         //> * Directory common to all the repos associated with this project.
 ,                                       a_sFolder                                                       //> *
 ,                                       a_sFile                                                         //> *
 ,                                       a_sType                                                         //> * extension
 ,                                       a_sPathTemp                                                     //>
-){                                      //////////////////////////////////////////////////////////////////> *
+){                                      //////////////////////////////////////////////////////////////////>
+ console.log( 'a_sRoot     '+ a_sRoot     );                                                            //>
+ console.log( 'a_sFolder   '+ a_sFolder   );                                                            //>
+ console.log( 'a_sFile     '+ a_sFile     );                                                            //>
+ console.log( 'a_sType     '+ a_sType     );                                                            //>
+ console.log( 'a_sPathTemp '+ a_sPathTemp );                                                            //>
  var                     sPathFileMain  = a_sRoot +'repo_MAIN/' + a_sFolder + a_sFile+a_sType          ;//>
  var                     sPathFileNotes = a_sRoot +'repo_NOTES/'+ a_sFolder + a_sFile+a_sType          ;//>
  var                     sPathFileBlame = a_sPathTemp                       + a_sFile+a_sType +'_blame';//>
- EnsurePathExists( a_sRoot +'repo_NOTES/'+ a_sFolder );                                                 //> If the Notes sub-folder does not exist, then create it now.
+ EnsurePathExists( a_sPathTemp                    );                                                    //>
+ EnsurePathExists( a_sRoot +'repo_NOTES/'+ a_sFolder );                                                 //> If the sub-folder with the Notes directory structure does not exist, then create it now.
  if( !fs.existsSync(sPathFileNotes) ){                                                                  //> If the Notes sub-folder does not exist, then
   Execute(  'cd '+ a_sRoot +'repo_MAIN & git blame '+ sPathFileMain ,sPathFileBlame );                  //> Execute system command - output into a standard file.
   const                                 sDATA                = fs.readFileSync(sPathFileBlame ,'UTF-8');//>
@@ -289,17 +308,17 @@ function                                Go_SwitchToNotes(///////////////////////
 }//Go_SwitchToNotes///////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                Go_ScanFile_NotesCopy_Line(///////////////////////////////////////> * Copy a line of source code, collapsing indentation, adding a blank comment with the line numbers of the original fike.
+function                                Go_ScanFile_NotesCopy_Line(///////////////////////////////////////>
                                         a_avParameters                                                  //> * Parameters for the above line-wise function.
 ,                                       a_sLine                                                         //> *
 ,                                       a_sPathFileIn                                                   //> *
 ,                                       a_iAt                                                           //> * Source code line number (0 is first line), or -1 for last line of the file.
-){                                      //////////////////////////////////////////////////////////////////> *
+){                                      //////////////////////////////////////////////////////////////////>
  const                                  asLINESbLAME            = a_avParameters[0];                    //>
  if( a_iAt < 0 ){                                                                                       //>
 return ('/**/// `);'                                             ).padEnd(104)+'//> End of file.'+"\n"; //> End file and end multi-line console.log text string during macro expansion.
  }//if                                                                                                  //>
- const                                  sLINEbLAME              = asLINESbLAME[a_iAt];                  //console.log(sLINEbLAME);//>
+ const                                  sLINEbLAME              = asLINESbLAME[a_iAt];                  //>
  var                                    asB                     = sLINEbLAME.split('(');                //>
  const                                  sCOMMIT                 = asB[0].trim();                        //>
  asB = asB[1].split(')')[0].split(' ').filter( (a) => a !== '' );                                       //> Split what is inside parentheses on spaces, removing empty elements (multiple spaces in a row).
@@ -309,11 +328,13 @@ return ('/**/// `);'                                             ).padEnd(104)+'
  if( 'undefined' !== typeof asB[N-5] ){ sName += asB[N-5]+' '; }                                        //>
  sName = sName.trim();                                                                                  //>
  switch( sName ){                                                                                       //>
- case        'Brad Murray'    : case 'brad'     :                 sName = 'Brad   ';                    //>
- break; case 'David Walley'   :                                   sName = 'David  ';                    //>
- break; case 'Erik Yuzwa'     : case 'erikyuzwa':                 sName = 'Erik   ';                    //>
- break; case 'Jessica Engblom': case 'jess'     : case 'jessica': sName = 'Jessica';                    //>
- break;default: console.log('*************** '+ sName +' *');                                           //>
+ case       'Brad Murray'    : case 'brad'     :                     sName = 'Brad   ';                 //>
+ break;case 'David Walley'   :                                       sName = 'David  ';                 //>
+ break;case 'Erik Yuzwa'     : case 'erikyuzwa': case 'eyuzwa':      sName = 'Erik   ';                 //>
+ break;case 'Jessica Engblom': case 'jess'     : case 'jessica':     sName = 'Jessica';                 //>
+ break;case 'hg'             :                                       sName = 'hg     ';                 //>
+ break;case 'Cam Roe'        :                                       sName = 'Cam    ';                 //>
+ break;default               : console.log('*** Unrecognized dev: '+ sName +' *');                      //>
  }//switch                                                                                              //>
                                                                                                         //>
  var                                    sBlame                  = '             '                       //>
@@ -340,8 +361,8 @@ return '';                                                                      
   r_s =                                 r_s                       .padEnd(104)+'//> '+ sBlame    +"\n"; //> Add a floating comment with last edit (blame) info for original file.
   if( 0 === a_iAt ){                                                                                    //> If the first line of a file
 return ('// '+ a_sPathFileIn +' - with NOTES.'                   ).padEnd(104)+'//>'             +"\n"  //> start with standard header and
-      +('// (c)2021 David C. Walley'                             ).padEnd(104)+'//>'             +"\n"  //> copyright notice.
-//    +('// (c)2021 Mindfuel Inc., all rights reserved.'         ).padEnd(104)+'                 +"\n"  //> copyright notice.
+      +('// (c)2021 Mindfuel Inc., all rights reserved'                             ).padEnd(104)+'//>'             +"\n"//> copyright notice.
+//    +('// (c)2021 Mindfuel Inc., all rights reserved.'         ).padEnd(104)+'                        //> '             +"\n"   copyright notice.
       +(' '                                                      ).padEnd(104)+'//>'             +"\n"  //>
       +('/**/// console.log(`'                                   ).padEnd(104)+'//>'             +"\n"  //> Start multi-line text string of code:
       + r_s                                                                                             //>
@@ -353,12 +374,12 @@ return ('/**/// `);'                                             ).padEnd(104)+'
 }//Go_ScanFile_NotesCopy_Line/////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                Go_ScanFile(//////////////////////////////////////////////////////> *
+function                                Go_ScanFile(//////////////////////////////////////////////////////>
                                         a_functionLine                                                  //> *
 ,                                       a_avParameters                                                  //> * Parameters for the above line-wise function.
 ,                                       a_sPathFileIn                                                   //> *
 ,                                       a_sPathFileOut                                                  //> *
-){                                      //////////////////////////////////////////////////////////////////> *
+){                                      //////////////////////////////////////////////////////////////////>
  const                                  sDATA                 = fs.readFileSync(a_sPathFileIn,'UTF-8'); //>
  const                                  asLINES               = sDATA.split("\n");                      //> Split on new-lines.
  var                                    r_s                   = '';                                     //>
@@ -367,7 +388,7 @@ function                                Go_ScanFile(////////////////////////////
   if( iLine === asLINES.length-1   &&   '' === sLine ){                                                 //>
  break;                                                                                                 //>
   }//if                                                                                                 //>
-                                                                                                        //console.log(iLine ,sLine);//>
+                                                                                                        //>
   r_s += a_functionLine( a_avParameters ,sLine ,a_sPathFileIn ,iLine );                                 //>
  }                                                                                                      //>
  r_s  += a_functionLine( a_avParameters ,''    ,a_sPathFileIn ,-1    );                                 //> Request a possible end of file line or lines.
@@ -377,27 +398,27 @@ function                                Go_ScanFile(////////////////////////////
 }//Go_ScanFile////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                Go_ScanPath(//////////////////////////////////////////////////////> *
+function                                Go_ScanPath(//////////////////////////////////////////////////////>
                                         a_functionFile                                                  //> * Function to run on each file.
 ,                                       a_sPath                                                         //> * Path to be scanned.
-){                                      //////////////////////////////////////////////////////////////////> *
+){                                      //////////////////////////////////////////////////////////////////>
  var                                    r_s                     = '';                                   //>
  var                                    asFiles                 = asPathsFiles_recursive(a_sPath);      //>
-                                                                                                        //console.log(asFiles);//>
+                                                                                                        //>
  for( var i = 0; i < asFiles.length; i++ ){                                                             //>
   var                                   sFile                   = asFiles[i];                           //>
-                                                                                                        //console.log(i ,sFile);//>
+                                                                                                        //>
  }//for                                                                                                 //>
 return '';                                                                                              //>
 }//Go_ScanPath////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                Go_ScanFile_sSnippets_Line(///////////////////////////////////////> *
+function                                Go_ScanFile_sSnippets_Line(///////////////////////////////////////>
                                         a_avFileParameters                                              //> * Parameters passed in from file level code.
 ,                                       a_sLine                                                         //> *
 ,                                       a_sPathFileIn                                                   //> *
 ,                                       a_iAt                                                           //> *
-){                                      //////////////////////////////////////////////////////////////////> *
+){                                      //////////////////////////////////////////////////////////////////>
  if( a_iAt < 0 ){ return ''; }                                                                          //>
  var                                    sLine                   = a_sLine.trimLeft();                   //>
  var                                    nIndents                = a_sLine.length - sLine.length;        //>
@@ -410,15 +431,15 @@ return a_sLine +"\n";                                                           
 }//Go_ScanFile_sSnippets_Line/////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                Go_ScanFile_sSnippets_Line_function(//////////////////////////////> *
+function                                Go_ScanFile_sSnippets_Line_function(//////////////////////////////>
                                         sIndent                                                         //> *
 ,                                       asWords                                                         //> *
-){                                      //////////////////////////////////////////////////////////////////> *
+){                                      //////////////////////////////////////////////////////////////////>
  var                                    r_s                     =  '          //>'   +"\n"              //>
                                                                   +'          //>'   +"\n";             //>
  r_s +=  (   sIndent+'function' ).padEnd(39) +' '+ asWords[1] +'(///////////////> *' +"\n";             //>
- for( i = 2; i < asWords.length; i++ ){                                                                 //console.log(i);//>
-  s = asWords[i].trim();                                                                                //console.log(s);//>
+ for( i = 2; i < asWords.length; i++ ){                                                                 //>
+  s = asWords[i].trim();                                                                                //>
   if( s[0].toUpperCase() === s[0].toLowerCase() ){                                                      //> If not a letter then
  break;                                                                                                 //> quit
   }                                                                                                     //> .
@@ -433,30 +454,33 @@ return r_s;                                                                     
 }//Go_ScanFile_sSnippets_Line_function////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                Go_ScanFile_sNeat_Line(///////////////////////////////////////////> *
+function                                Go_ScanFile_sNeat_Line(///////////////////////////////////////////>
                                         a_avFileParameters                                              //> * Parameters passed in from file level code.
 ,                                       a_sLine                                                         //> *
 ,                                       a_sPathFileIn                                                   //> *
 ,                                       a_iAt                                                           //> *
-){                                      //////////////////////////////////////////////////////////////////> *
-//console.log(a_iAt ,'Go_ScanFile_sNeat_Line');                                                         //>
+){                                      //////////////////////////////////////////////////////////////////>
  if( a_iAt < 0 ){ return ''; }                                                                          //>
  var                                    r_s                     = '';                                   //>
- var                                    iChar                   = iSplitCodeComments( '' ,a_sLine );    //> Find split point between code and comments.
+ var                                    iChar                   = iSplitCodeComments( '//>' ,a_sLine ); //> Find split point between code and comments.
  var                                    sCode                   = a_sLine.slice(0,iChar  )          ;   //>
  var                                    sComments               = a_sLine.slice(  iChar+3).trimEnd();   //>
+ var                                    asComments              = sComments.split('//>');               //>
+ var                                    sFirstComment           = asComments.pop();                     //>
+ sComments = asComments.map(Function.prototype.call, String.prototype.trim).join('   ');                //> hey   what is this?
+                                                                                                        //>
  const                                  iSLIDEtO                = 104;                                  //> Normal length of code section of a line - defines where floating comments float to.
                                                                                                         //>
- if( '///' !== sCode.slice(-3) ){                                                                       //> If not a decoration line flagged with 3 or more slashes then
-return sCode.trimEnd().padEnd(iSLIDEtO     ) +'//>'+ sComments +"\n";                                   //> Pad the code with spaces to the preferred column
+ if( '////' !== sCode.slice(-4) ){                                                                      //> If not a decoration line flagged with 3 or more slashes then
+return sCode.trimEnd().padEnd(iSLIDEtO     ) +('//>'+ sFirstComment +'   '+ sComments).trim() +"\n";    //> Pad the code with spaces to the preferred column
  }//if                                                                                                  //>
-                                                                                                        //> Otherwise
+                                                                                                        //> But if end of line indicates it is a decoration line, then...
  while( iSLIDEtO < sCode.length   &&   '/' === sCode.slice(-1) ){ sCode = sCode.slice(0,-1); }          //> remove all extra slashes beyond the end of code portion of line.
-return sCode.padEnd(          iSLIDEtO ,'/') +'//>'+ sComments +"\n";                                   //> Pad the code with additional slashes after the existing streak.
+return sCode.padEnd(          iSLIDEtO ,'/') +('//>'+ sFirstComment +'   '+ sComments).trim() +"\n";    //> Pad the code with additional slashes after the existing streak.
 }//Go_ScanFile_sNeat_Line/////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                Go_Macro(/////////////////////////////////////////////////////////> * Process (macro-expand) a source code file.
+function                                Go_Macro(/////////////////////////////////////////////////////////>
                                         a_sMode                                                         //> * Parameter that is passed into JS macro code for its use. 'test' is generally used to generate automated test code.
 ,                                       a_sInPath                                                       //> * Input path,
 ,                                       a_sFile                                                         //> * file, and
@@ -497,12 +521,12 @@ function                                Go_Macro(///////////////////////////////
 }//Go_Macro///////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                sGo_Macro_Line(///////////////////////////////////////////////////> * Create a macro expanded version of the given line.
+function                                sGo_Macro_Line(///////////////////////////////////////////////////>
                                         a_avFileParameters                                              //> * Parameters passed in from file level code.
 ,                                       a_sLine                                                         //> * Source code line.
 ,                                       a_sPathFile                                                     //> * Path and file name of the file to be tidied.
 ,                                       a_iAt                                                           //> * Source code line number.
-){                                      //////////////////////////////////////////////////////////////////> * Return a text string.
+){                                      //////////////////////////////////////////////////////////////////>
  if( a_iAt < 0 ){ return ''; }                                                                          //>
  var                                    r_s                     = '';                                   //>
  var                                    sLine                   = a_sLine +'   ';                       //>
@@ -514,23 +538,23 @@ function                                sGo_Macro_Line(/////////////////////////
    var                                  s                       = asParts[i];                           //>
    if( ' ' === s[0]   ||   ! s.includes('*/') ){                                                        //> If the block comment starts with a space, or there is no end to the block comment then
     sLine += '/*'     + s;                                                                              //> append the part as is, and move on to next part
-   }else{                                                                                               //> Otherwise,                                                             //> .
+   }else{                                                                                               //> Otherwise,   .
     if(      '_FILE_*/' === s.slice(0 ,8) ){ sLine += a_sPathFile                 + s.slice(8); }       //> Replace magic constant - current file name.
     else if( '_LINE_*/' === s.slice(0 ,8) ){ sLine +=                   (a_iAt+1) + s.slice(8); }       //> Replace magic constant - current line number.
     else if( '_HERE_*/' === s.slice(0 ,8) ){ sLine += a_sPathFile +':'+ (a_iAt+1) + s.slice(8); }       //> Replace magic constant - file and line.
     else                                   { sLine += '\u0060+' + s.replace('*'+'/' ,'+\u0060') ; }     //> immediate replacement with `+( ... )+` (where ... is the comment contents).
  }}}//if//for i//else                                                                                   //>
                                                                                                         //>
- var                                    iChar                = iSplitCodeComments('strip' ,sLine +'//');//> Find split point between code and comments.
- var                                    sCode                = sLine.slice(0 ,iChar-1);                 //>
+ var                                    iChar                   = iSplitCodeComments('//' ,sLine +'//');//> Find split point between code and comments.
+ var                                    sCode                   = sLine.slice(0 ,iChar-1);              //>
 return sCode.trimEnd();                                                                                 //>
 }//sGo_Macro_Line/////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
                                                                                                         //>
-function                                iSplitCodeComments(///////////////////////////////////////////////> * Find split point between code and comments.
-                                        a_sMode                                                         //> * Given parsing variation, e.g., ''=split at floating comment, or 'strip'=split at first comment.
+function                                iSplitCodeComments(///////////////////////////////////////////////>
+                                        a_sMode                                                         //> * Given parsing variation, e.g., '   '=split at floating comment, or '//'=split at first comment.
 ,                                       a_sLine                                                         //> * Source code line.
-){                                      //////////////////////////////////////////////////////////////////> * Return an integer.
+){                                      //////////////////////////////////////////////////////////////////>
  if( undefined === a_sMode ){                                                                return -1;}//> This argument is required.
  if( undefined === a_sLine ){                                                                return -2;}//> This argument is required.
  var                                    sInQuotes               = '';                                   //> Remember if scan is currently inside of single or double quotes.
@@ -549,7 +573,7 @@ return r_iChar-2;                                                               
   }//if                                                                                                 //> .
                                                                                                         //>
   if( '/' === sWas   &&   '/' === sChar ){                                                              //> If start of in-line comment seen, then
-   if( 'strip' === a_sMode ){                                                                           //> if stripping all comments then
+   if( '//' === a_sMode ){                                                                              //> if stripping all comments then
 return r_iChar;                                                                                         //> report position of split and we are done
    }//if                                                                                                //> . But if not...
    sInQuotes = '/';                                                                                     //> Disable further search for quotes
