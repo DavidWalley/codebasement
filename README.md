@@ -1,3 +1,26 @@
+# Codebase as Database
+Integrated Development Environments are antiquated.
+My brother learned how to code back in the 1970s, but went on to other things.
+A while back he asked to see how programming is done these days, and he remarked he was surprised that not much has changed.
+An explanation of new features of the latest languages, would not what he was talking about.
+
+He was surprised at what my IDE looked like, and that at it was still, essentially, a text editor. 
+He started his career looking at x-ray photos on a light-box.
+Now, he can take virtual tours inside a beating heart, or check out how a mutation might affect 3-D protein folding. 
+
+I am envious.
+It is hard to achieve what I am looking for, but I am taking baby steps, and posting results.
+I also know that many of the features I am looking for are out there, but many take significant learning time for a result that may or may not prove helpful.
+I have seen some educational games to teach coding that have more useful visualization capabilities than my so-called advanced IDE.
+
+I want my codebase to be in some kind of row-by-row database-like repository, conceptually more sophisticated than a bunch of text files and resources, allowing me to query it in multiple different ways - to generate different views of source code, documentation, test code, static analyses, history, graphical and animated views, and other custom results.  
+
+As aspirational goals, my high-level wish list of features in a future IDE:
+- Visual, taking advantage of 3-D, graphical, schematic, text, animation and custom views of a code-base. (Not to exclude audio or other sensory interfaces which could develop)
+- Seemlessly multi-view, allowing easy navigation of multiple simultaneous views
+- Multi-lingual, allowing focus on design, rather than details of a given computer language, and automatic or at least easy porting
+- Data-centric, ensuring that at its root, though not always obvious, the code-base is kept in a future-proof open format
+
 # codebasement
 Codebase as Database JavaScript preprocessor and tool-chain using JavaScript as the macro language.
 
