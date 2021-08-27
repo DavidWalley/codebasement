@@ -9,9 +9,9 @@ He started his career looking at x-ray photos on a light-box.
 Now, he can take virtual tours inside a beating heart, or check out how a mutation might affect 3-D protein folding. 
 
 I am envious.
+I have seen some games for learning coding that have more useful and intuitive visualization capabilities than any advanced IDE.
 It is hard to achieve what I am looking for, but I am taking baby steps, and posting results.
 I also know that many of the features I am looking for are out there, but many take significant learning for a result that may or may not prove helpful.
-I have seen some games for learning coding that have more useful and intuitive visualization capabilities than any advanced IDE.
 
 I want my codebase to be in some kind of row-by-row database-like repository, conceptually more sophisticated than a bunch of text files and resources, allowing me to query it in multiple different ways - to generate different views of source code, documentation, test code, static analyses, history, graphical and animated views, and other custom results.  
 
