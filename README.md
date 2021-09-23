@@ -1,12 +1,12 @@
 # Codebase as Database
 Integrated Development Environments are antiquated.
 My brother learned how to code back in the 1970s, but went on to other things.
-A while back he asked to see how programming is done these days, and he remarked that not much has changed.
+A while back he asked to see how programming is done these days, and his reaction was that not much has changed.
 Launching into an explanation of new features of the latest languages was tempting for me, but not what he was talking about.
 
-He was surprised at what my IDE looked like, and that it was still, essentially, a text editor. 
 He started his career looking at x-ray photos on a light-box.
 Now, he can take virtual tours inside a beating heart, or check out how a mutation might affect 3-D protein folding. 
+He was surprised at what my IDE looked like, and that it was still, essentially, a text editor. 
 
 I am envious.
 I have seen some games for learning coding that have more useful and intuitive visualization capabilities than any advanced IDE.
