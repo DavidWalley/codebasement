@@ -1,4 +1,4 @@
-// ToolChain_GameMaker.hx - Haxe language bodge code for transferring files in and out of a GameMaker project.
+// ToolChain_GameMaker.hx - Haxe language bodge code for transferring files in and out of a GameMaker project. Now in GitHub.
 // (c)2024 DC Walley
 
 // Start GameMaker IDE.
