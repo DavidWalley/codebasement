@@ -1,13 +1,17 @@
 // ToolChain_GameMaker.hx - Haxe language bodge code for transferring files in and out of a GameMaker project. Now in GitHub.
-// (c)2024 DC Walley
+// (c)2024 D.C. Walley
 
-// Start GameMaker IDE.
-// Open project *.yyp
+// For coding in GameMaker, I prefer all code to be organized in files of my choosing. Also, I want a
+// few simple macro replacements for coding convenience. This Haxe program does this. I call it from
+// the command line with options to transfer pre-processed code to a GameMaker project, or from it.
+// Some paths are hard-coded below, because this is just bodge code at this time.
+
+// Start GameMaker IDE. Open project *.yyp
 // In a UBUNTU terminal (ctrl+alt+T):
 // cd ~/Desktop/AAA/code
-//      language
+//        language
 //             Intermediate file
-//                         Main code class                                                   Custom direction operation
+//                                            Main code class                                Custom direction operation
 // haxe --neko                    TEMP_neko.n --main ToolChain_GameMaker && neko TEMP_neko.n TOpROJECT # <- 
 // haxe --neko ~/Desktop/AAA/code/TEMP_neko.n --main ToolChain_GameMaker && neko TEMP_neko.n SUMMARIZE # ->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->
 
