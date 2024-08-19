@@ -15,6 +15,7 @@
 // haxe --neko                    TEMP_neko.n --main ToolChain_GameMaker && neko TEMP_neko.n TOpROJECT # <- 
 // haxe --neko ~/Desktop/AAA/code/TEMP_neko.n --main ToolChain_GameMaker && neko TEMP_neko.n SUMMARIZE # ->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->
 
+// The following outlines what I want to do with most $-code to source code projects:
 //   +--------+  +------------+  +------------+      +------------+   +---------+   +---------+         //>
 //   | $ code |->| Bodge Pre- |->| Prettify*  |      | Prettify*  |<--| Source  |<--| Manual  |         //> * Post-processing sometimes required.
 //   | Notes  |  | Process    |  | 1-1 to AST |      | 1-1 to AST |   | repo    |   | changes |         //>
