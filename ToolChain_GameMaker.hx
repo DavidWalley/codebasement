@@ -25,7 +25,7 @@
 //
 // But comments don't work, because:
 // Extensive note-taking messes with the source code repo.
-// And, too many devs read all the notes, which can get to be a waste of their time.
+// And, too many devs read all the footnotes, which can get to be a waste of their time.
 // Notes are most useful for fixing bugs or perhaps refactoring - otherwise they can be a distraction.
 
 // I DON'T WRITE TOO MANY COMMENTS - YOU READ TOO MANY!
@@ -75,9 +75,11 @@
 //
 // Don't complain - fix it.
 
-// Feature 1) File splitter from $-code to source:
+// This code's features
+// ====================
+// 1) File splitter/joiner from $-code to source and back:
 //    Splits and restores files delimited with == == == lines, kept in order with on the return trip with "/// @description 10002 ..." lines.
-// Feature 2) Search and replace:
+// 2) Search and replace:
 //    Keeps a list of any search and replace definitions, specified in comments, in the form of:
 //      $REPLACE>needle >  $WITH>replacement >
 //    Makes replacements, and reverses them on the return trip.
@@ -96,7 +98,7 @@ class ToolChain_GameMaker //////////////////////////////////////////////////////
 //var              _sPathSums        :String="/home/dave/Desktop/AAA/Convention_Maze/"     ;            //> Money code directory, gets summary of project.
                                                                                                         //>
 //var              _sGml                :String                 = "";                                   //>
-  var              _s                   :String                 = "";                                   //> Utility text string.
+  var              _sReport             :String                 = "";                                   //> Report on files found and processed.
                                         
   var              _asGml                                       = new Array<String>();                  //> List of *.gml files' contents.
                                         
@@ -107,43 +109,43 @@ class ToolChain_GameMaker //////////////////////////////////////////////////////
   var              _sYyp                :String                 = "";                                   //> *.yyp file JSON contents.
 
 
- function               FoundFile(////////////////////////////////////////////////////////////////////////>
-                        sPath                                                                           //>
- )                                      :Void {///////////////////////////////////////////////////////////>
+ function               FoundFile(////////////////////////////////////////////////////////////////////////> Process files found in the GameMaker project, according to their filename extension.
+                        sPath                                                                           //> Path and filename of a file found in the GameMaker project.
+ )                                      :Void {///////////////////////////////////////////////////////////> Report nothing, change a private variable.
   var                   as              :Array<String>          = ("."+ sPath).split(".");              //>
   switch as[as.length-1] {                                                                              //> Depending on extension (whatever is after '.')...
-//case "n"             : _s    += "\nn             file found: " + sPath;                               //>
-//case "hx"            : _s    += "\nhx            file found: " + sPath;                               //>
-//case "js"            : _s    += "\njs            file found: " + sPath;                               //>
+//case "n"             : _sReport    += "\nn             file found: " + sPath;                         //>
+//case "hx"            : _sReport    += "\nhx            file found: " + sPath;                         //>
+//case "js"            : _sReport    += "\njs            file found: " + sPath;                         //>
   case "gml"           : _asGml.push( _sFileSplit + sPath +"\n"+ sys.io.File.getContent(sPath) );       //> Put in array, ultimately sorted by second line (number after @description).
   case "yy"            : _sYy  +=     _sFileSplit + sPath +"\n"+ sys.io.File.getContent(sPath)  ;       //> JSON formatted object data?
   case "yyp"           : _sYyp +=     _sFileSplit + sPath +"\n"+ sys.io.File.getContent(sPath)  ;       //> JSON formatted project data?
-  case "txt"           : _s    += "\n"+             sPath;                                              //> Our notes?
-  case "png"           : _s    += "\n"+             sPath;                                              //> graphic file
-  case "wav"           : _s    += "\n"+             sPath;                                              //> audio file
-  case "resource_order": _s    += "\n"+             sPath;                                              //>
-  case "gitattributes" : _s    += "\n"+             sPath;                                              //>
-  case "gitignore"     : _s    += "\n"+             sPath;                                              //>
-  default              : _s    += "\n~~~Unknown file extension ~~~~~~~~~~~~~~~~~~~~~~ found: " + sPath; //> do something with file
+  case "txt"           : _sReport    += "\n"+             sPath;                                        //> Our notes?
+  case "png"           : _sReport    += "\n"+             sPath;                                        //> graphic file
+  case "wav"           : _sReport    += "\n"+             sPath;                                        //> audio file
+  case "resource_order": _sReport    += "\n"+             sPath;                                        //>
+  case "gitattributes" : _sReport    += "\n"+             sPath;                                        //>
+  case "gitignore"     : _sReport    += "\n"+             sPath;                                        //>
+  default              : _sReport    += "\n~~~Unknown file extension ~~~~~~~~~~~~~~~~ found: " + sPath; //> do something with file
   }//switch                                                                                             //>
  }//FoundFile/////////////////////////////////////////////////////////////////////////////////////////////>
 
 
- function               FoundFolder_recursive(////////////////////////////////////////////////////////////> 
+ function               FoundFolder_recursive(////////////////////////////////////////////////////////////> Continue recursive scan of a directory folder.
                         sPath                                                                           //>
  )                                      :Void {///////////////////////////////////////////////////////////>
   sPath = haxe.io.Path.addTrailingSlash(sPath);                                                         //>
-  if( 1 < ( sPath.split(".git/"   ) ).length ){ _s += "\n"+ sPath +" -------- Ignoring";        return;}//>
-  if( 1 < ( sPath.split("rooms/"  ) ).length ){ _s += "\n"+ sPath +" -------- Ignoring";        return;}//>
-  if( 1 < ( sPath.split("fonts/"  ) ).length ){ _s += "\n"+ sPath +" -------- Ignoring";        return;}//>
-  if( 1 < ( sPath.split("options/") ).length ){ _s += "\n"+ sPath +" -------- Ignoring";        return;}//>
-  if( 1 < ( sPath.split("sprites/") ).length ){ _s += "\n"+ sPath +" -------- Ignoring";        return;}//>
-  if( 1 < ( sPath.split("sounds/" ) ).length ){ _s += "\n"+ sPath +" -------- Ignoring";        return;}//>
+  if( 1 < ( sPath.split(".git/"   ) ).length ){ _sReport += "\n"+ sPath +" -------- Ignoring";  return;}//>
+  if( 1 < ( sPath.split("rooms/"  ) ).length ){ _sReport += "\n"+ sPath +" -------- Ignoring";  return;}//>
+  if( 1 < ( sPath.split("fonts/"  ) ).length ){ _sReport += "\n"+ sPath +" -------- Ignoring";  return;}//>
+  if( 1 < ( sPath.split("options/") ).length ){ _sReport += "\n"+ sPath +" -------- Ignoring";  return;}//>
+  if( 1 < ( sPath.split("sprites/") ).length ){ _sReport += "\n"+ sPath +" -------- Ignoring";  return;}//>
+  if( 1 < ( sPath.split("sounds/" ) ).length ){ _sReport += "\n"+ sPath +" -------- Ignoring";  return;}//>
   ScanFolder_recursive(sPath);                                                                          //> Scan this sub-folder using a recursive function.
  }//FoundFolder_recursive/////////////////////////////////////////////////////////////////////////////////>
 
 
- function               ScanFolder_recursive(/////////////////////////////////////////////////////////////>
+ function               ScanFolder_recursive(/////////////////////////////////////////////////////////////> Scan a directory folder and, recursively, scan sub-folders.
                         a_sPath                                                                         //> Path to directory to be scanned.
  )                                      :Void {///////////////////////////////////////////////////////////>
                                                                                                         trace("Directory found: " + a_sPath); //>
@@ -158,7 +160,7 @@ class ToolChain_GameMaker //////////////////////////////////////////////////////
  }//ScanFolder_recursive//////////////////////////////////////////////////////////////////////////////////>
 
 
- function               sMacrosReplace(///////////////////////////////////////////////////////////////////> Define a find and replace operation on all $/source code.
+ function               sMacrosReplace(///////////////////////////////////////////////////////////////////> Define a find and replace operation on all $-code.
                         sGml                                                                            //>
  ,                      a_isDirection                                                                   //> 0= Macro $ code to source, 1= source from GameMaker to $ code.
  )                                      :String {/////////////////////////////////////////////////////////>
@@ -180,8 +182,7 @@ class ToolChain_GameMaker //////////////////////////////////////////////////////
    }else{                                                                                               //> 1= source from GameMaker to $ code.
     sGml = sGml.split(              asSource[    i] ).join(              asMoneyMacro[i] );             //> Source replacements back to Macros
     sGml = sGml.split( "$WITH>"   + asMoneyMacro[i] ).join( "$WITH>"   + asSource[    i] );             //> But restore the definition lines
-   }//if                                                                                                //>
-  }//for i                                                                                              //>
+  }}//if//for i                                                                                         //>
                                                                                                         //>
 return sGml;                                                                                            //>
  }//sMacrosReplace////////////////////////////////////////////////////////////////////////////////////////>
@@ -211,9 +212,9 @@ return sGml;                                                                    
 
  function               new_Summarize(////////////////////////////////////////////////////////////////////> Get source from GameMaker, write to summary files (concatenate everything).
  ){                     //////////////////////////////////////////////////////////////////////////////////>
-  _s       = "";                                                                                        //>
-  ScanFolder_recursive(    _sPathGameMaker                       );                                     //>
-  sys.io.File.saveContent( _sPathSums +"SUMMARY_s.txt"    ,_s    );                                     //>
+  _sReport       = "";                                                                                  //>
+  ScanFolder_recursive(    _sPathGameMaker                             );                               //>
+  sys.io.File.saveContent( _sPathSums +"SUMMARY_s.txt"    ,_sReport    );                               //>
   _asGml.sort(         function(a, b){                                                                  //> Sort List of *.gml files' contents by
                         var             A                       = ( (a+"\n0").split("\n") )[2];         //> second line (first is file name).
                         var             B                       = ( (b+"\n0").split("\n") )[2];         //>
@@ -239,9 +240,9 @@ return sGml;                                                                    
  }//new_Summarize/////////////////////////////////////////////////////////////////////////////////////////>
 
 
- function               new(//////////////////////////////////////////////////////////////////////////////>
+ function               new(//////////////////////////////////////////////////////////////////////////////> Construct a new object of this class (and run appropriate processing).
  )                                      :Void {///////////////////////////////////////////////////////////>
-  var                   sCommandLineDirection :String           = ( Sys.args() )[0];                    //> Get direction operation from command line.
+  var                      sCommandLineDirection :String        = ( Sys.args() )[0];                    //> Get direction operation from command line.
   if(       "SUMMARIZE" == sCommandLineDirection ){          trace( sCommandLineDirection +" ->->->" ); //> If command line is specifying "from GameMaker project to summary $-code files":
    new_Summarize();                                                                                     //>
   }else if( "TOpROJECT" == sCommandLineDirection ){          trace( sCommandLineDirection +" <-----" ); //> If command line is specifying "Read summaries and write back to project":
@@ -250,12 +251,12 @@ return sGml;                                                                    
  }//new///////////////////////////////////////////////////////////////////////////////////////////////////>
 
 
- static public function main(/////////////////////////////////////////////////////////////////////////////>
+ static public function         main(/////////////////////////////////////////////////////////////////////> Execution starts here.
  )                                      :Void {///////////////////////////////////////////////////////////>
   #if sys                                                                                               //>
    trace("file system can be accessed");                                                                //>
   #end                                                                                                  //>
-  new ToolChain_GameMaker();                                                                            //> run instance of main code.
+  new ToolChain_GameMaker();                                                                            //> Create and run and instance of main code.
  }//main//////////////////////////////////////////////////////////////////////////////////////////////////>
                                                                                                         //>
 }//class ToolChain_GameMaker//////////////////////////////////////////////////////////////////////////////>
