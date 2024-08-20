@@ -1,24 +1,52 @@
-// ToolChain_GameMaker.hx - Haxe language bodge code for transferring files in and out of a GameMaker project. Now in GitHub.
-// (c)2024 D.C. Walley
-
-// For coding in GameMaker, I prefer all code to be organized in files of my choosing. Also, I want a
-// few simple macro replacements for coding convenience. This Haxe program does this. I call it from
-// the command line with options to transfer pre-processed code to a GameMaker project, or from it.
-// Some paths are hard-coded below, because this is just bodge code at this time.
+// codebasement/ToolChain_GameMaker.hx - Haxe language BODGE code for transferring files in and out of a GameMaker project.
+// (c)2024 David C. Walley
 
 // Start GameMaker IDE. Open project *.yyp
 // In a UBUNTU terminal (ctrl+alt+T):
-// cd ~/Desktop/AAA/code
-//        language
-//             Intermediate file
-//                                            Main code class                                Custom direction operation
-// haxe --neko                    TEMP_neko.n --main ToolChain_GameMaker && neko TEMP_neko.n TOpROJECT # <- 
-// haxe --neko ~/Desktop/AAA/code/TEMP_neko.n --main ToolChain_GameMaker && neko TEMP_neko.n SUMMARIZE # ->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->
+// cd ~/Desktop/AAA/code/codebasement                                                                   # Where I keep this file.
+// #      Language (neko for local execution bodge code)                                     Custom direction operation
+// #      |                       Intermediate file                                          |
+// #      |                       |            Main code class                               | 
+// #      V                       V             V                                            V                      
+// haxe --neko                    TEMP_neko.n --main ToolChain_GameMaker && neko TEMP_neko.n TOpROJECT
+// haxe --neko ~/Desktop/AAA/code/TEMP_neko.n --main ToolChain_GameMaker && neko TEMP_neko.n SUMMARIZE  # <-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<- DANGER WILL ROBINSON <-<-<- WILL OVER-WRITE $-CODE <-<-<-
 
-// The following outlines what I want to do with most $-code to source code projects:
+// This Haxe program is bodge code for processing $-code notes to source code.   https://haxe.org/
+// Any project-related notes should be in electronic (preferrably text) format in a repo, because they belong to the enterprise, and shareholders should be pissed if not.
+// Therefore, I am releasing this as $-code, not source code, as an example of my note-taking.
+
+// THE FOLLOWING IS NOT SOURCE CODE. THESE ARE MY NOTES!
+
+// I like to have the ability to easily and non-distractingly write notes about individual lines or tokens found in the enterprise's source code.
+// The easiest way to do this is with single-line comments, starting at or after a given column and continuing on a single line until hitting a new-line.
+// Set your text editor to non-wrapping, and ignore comments that spill of the right side of the screen, or scroll over, or toggle word-wrap to read them.
+// In general reading long comments is discouraged, unless you need to. 
+// Beware the Stroop Effect. 
+//
+// But comments don't work, because:
+// Extensive note-taking messes with the source code repo.
+// And, too many devs read all the notes, which can get to be a waste of their time.
+// Notes are most useful for fixing bugs or perhaps refactoring - otherwise they can be a distraction.
+
+// I DON'T WRITE TOO MANY COMMENTS - YOU READ TOO MANY!
+
+// I believe notes should be kept separately, in their own repo, in a one-to-zero-or-one relationship between code lines or tokens, and footnotes about them.
+// This can be achieved with almost any text editor and in-line comments in $-code files, and minimal tooling to strip out most comments, and automatically prettify and post-process to meet desired standards.
+//
+// My notes are written for my brain, my visual cortex, and my neural net of memories - this bodge code is not for you, especially without reprogramming your brain's familiarity processors, which take about 2 weeks.
+// However, as a normal part of codebase-as-database methodology, this Haxe code can be exported to a fair number of other programming languages.
+// And, what do you care how I keep bodge code notes?
+// If, however, you like my notes, you are welcome to read, copy and use what you like.
+//
+// However, it is a property of my $-code notes that they can be converted into source code in the enterprise's preferred format, in what is hopefully a fully automated process.
+// In particular, this file of notes should execute properly as a Haxe file.
+// I co-locate relevant code, notes, and diagrams whenever possible, so I don't have to switch applications or even pages.
+// If everything is ASCII, then they can be presented to your eye with minimal effort and distraction on your part, and kept as if data in a database.
+
+// The following outlines what I want to do with most $-code to source code projects:                   //>
 //   +--------+  +------------+  +------------+      +------------+   +---------+   +---------+         //>
 //   | $ code |->| Bodge Pre- |->| Prettify*  |      | Prettify*  |<--| Source  |<--| Manual  |         //> * Post-processing sometimes required.
-//   | Notes  |  | Process    |  | 1-1 to AST |      | 1-1 to AST |   | repo    |   | changes |         //>
+//   | Notes  |  | Process    |  | 1-1 to AST |      | 1-1 to AST |   | repo ** |   | changes |         //> ** It is preferred that the Source repo code be prettified before it is commited - eliminate a step.
 //   +--------+  +------------+  +------------+      +------------+   +---------+   +---------+         //>
 //     ^                |                      \    /                                    ^              //>
 //     |                v                    +---------+                                 |              //>
@@ -26,7 +54,34 @@
 //     |                                     +---------+                                 |              //>
 // +-------------------------+                    |                                      |              //>
 // | Manual edits? Automate? |<----Changes--------+---------Changes->--------------------+              //>
-// +-------------------------+  
+// +-------------------------+                                                                          //>
+
+// GameMaker
+// =========
+// I have been asked to evaluate GameMaker and GML. 
+// GameMaker is useful for the vast majority of potential game designers because it provide many common 2-D game idioms in an easy-to-learn (or as easy as possible) way.
+// It also has some finished game export functionality which might prove useful.
+//
+// I hate the GameMaker IDE and a few annoying things about GML, so I don't edit GML source code in their IDE if I don't have to.
+// Rather, I use my preferred editor and edit my notes as text files.
+// I keep their IDE open with a corresponding project, but read from and write to files GameMaker uses, mostly the code and JSON property files, using this tool-chain, set to run from a hot-key.
+// Graphics files and the like I just import, keep, and edit in the GameMaker project.
+
+// For coding in GameMaker, I prefer all code to be organized in a directory structure of my choosing, which is a single file until it gets too big.
+// Also, I want a few simple macro replacements for coding convenience, because there are some annoying things, and a few dangerous things, in GML. 
+//
+// I call this code from the command line with options to transfer pre-processed code to a GameMaker project, or from it.
+// Some paths are hard-coded below, because this is just bodge code at this time. 
+//
+// Don't complain - fix it.
+
+// Feature 1) File splitter from $-code to source:
+//    Splits and restores files delimited with == == == lines, kept in order with on the return trip with "/// @description 10002 ..." lines.
+// Feature 2) Search and replace:
+//    Keeps a list of any search and replace definitions, specified in comments, in the form of:
+//      $REPLACE>needle >  $WITH>replacement >
+//    Makes replacements, and reverses them on the return trip.
+//    Sending to GameMaker, and then getting back from GameMaker, should result in no change to $-code file.
 
 
 class ToolChain_GameMaker ////////////////////////////////////////////////////////////////////////////////> For a GameMaker project:
@@ -34,22 +89,22 @@ class ToolChain_GameMaker //////////////////////////////////////////////////////
 
   var              _is                  :Int                    = 1;                                    //> 0 = read from project to summary files, 1 = read summaries and write back to project.;
   var              _sFileSplit          :String                 = "\n== == ==";                         //> Visual divider, and escape sequence to look for.
-  var              _sPathGameMaker      :String = "/home/dave/GameMakerProjects/HitMaker001";           //> Root directory of GameMaker project - "source code"
+  var              _sPathGameMaker   :String="/home/dave/GameMakerProjects/HitMaker001";                //> Root directory of GameMaker project - "source code"
   var              _sPathSums        :String="/home/dave/Desktop/AAA/Practical_Math_Music/game_music/"; //> Money code directory.
                                         
-//var              _sPathGameMaker      :String = "/home/dave/GameMakerProjects/Convention_Maze";       //> Root directory of GameMaker project.
-//var              _sPathSums           :String = "/home/dave/Desktop/AAA/Convention_Maze/"     ;       //> Money code directory, gets summary of project.
+//var              _sPathGameMaker   :String="/home/dave/GameMakerProjects/Convention_Maze";            //> Root directory of GameMaker project.
+//var              _sPathSums        :String="/home/dave/Desktop/AAA/Convention_Maze/"     ;            //> Money code directory, gets summary of project.
                                                                                                         //>
 //var              _sGml                :String                 = "";                                   //>
   var              _s                   :String                 = "";                                   //> Utility text string.
                                         
   var              _asGml                                       = new Array<String>();                  //> List of *.gml files' contents.
                                         
-//public var       _sPng                :String                 = "";                                   //>
-//public var       _sTxt                :String                 = "";                                   //>
-//public var       _sWav                :String                 = "";                                   //>
-  var              _sYy                 :String                 = "";                                   //> *.yy file contents.
-  var              _sYyp                :String                 = "";                                   //> *.yyp file contents.
+//public var       _sPng                :String                 = "";                                   //> Images, keep in GameMaker project.
+//public var       _sTxt                :String                 = "";                                   //> Not used?
+//public var       _sWav                :String                 = "";                                   //> Audio files, keep in GameMaker project.
+  var              _sYy                 :String                 = "";                                   //> *.yy file JSON contents.
+  var              _sYyp                :String                 = "";                                   //> *.yyp file JSON contents.
 
 
  function               FoundFile(////////////////////////////////////////////////////////////////////////>
