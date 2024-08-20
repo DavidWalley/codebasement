@@ -25,20 +25,21 @@ You can't always get what you want, but I have made some progress with existing 
 The 3-D visualizations are a long way off for me, but I have made some baby steps in organizing my codebase as a database.
 
 # codebasement
-Codebase as Database JavaScript preprocessor and tool-chain using JavaScript as the macro language.
+Codebase as Database preprocessor and tool-chain using Haxe (was JavaScript) as the macro bodge language.
 
-Uses JavaScript to run a development tool-chain, which tidies source code allowing organization along the lines of a database.
+Runs a development tool-chain, which tidies source code allowing organization along the lines of a database.
 
-Lines of source code are equivalent to records with fields including: (implied) sequence number; JS code (normally 104 ASCII characters); Comment (unlimited length, avoid escape character); and, miscellaneous key-value data (delimited by escape character).
+Lines of source code are equivalent to records with fields including: (implied) sequence number; code (normally 104 ASCII characters); Notes (unlimited length, avoid escape character); and, miscellaneous key-value data (delimited by escape character).
 
 It would be nice to store this as fields in records, and to edit these fields with a specialized application.
-However, given existing tools, it can be done by adopting a specific coding standard.
+However, given existing tools, it can be done by adopting a specific coding standard in "$-code" files.
 
 The goal is to use a single codebase to generate multiple products, including: industry standard prettified code; documentation of various formats; automated test code; code in formats suitable for import into existing tools and/or custom products.
 
-An optional part of this tool-chain is macro-expansion/processing using JavaScript itself as the macro language.
-JavaScript does not have a standard preprocessor, although many frameworks and language extensions can be seen as preprocessor/compilers.
+An optional part of this tool-chain is macro-expansion/processing.
+Many languages do not have a standard preprocessor, although many frameworks and language extensions can be seen as preprocessor/compilers.
 While some of these tools are undoubtedly useful, most do not offer the developer the oportunity to add their own definitions or macros.
+It is not difficult to write bodge code tools to do this task in a tool-chain that run automatically and frequently during development.
 
 ## Tidy:
 Main point is to divide page into code on left, and comments (plus miscellaneous key:value fields) overflowing off right side of display.
