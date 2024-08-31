@@ -4,12 +4,12 @@
 // Start GameMaker IDE. Open project *.yyp
 // In a UBUNTU terminal (ctrl+alt+T):
 // cd ~/Desktop/AAA/code/codebasement                                                                   # Where I keep this file.
-// #      Language (neko for local execution bodge code)                                     Custom direction operation
-// #      |                       Intermediate file                                          |
-// #      |                       |            Main code class                               | 
-// #      V                       V             V                                            V                      
-// haxe --neko                    TEMP_neko.n --main ToolChain_GameMaker && neko TEMP_neko.n TOpROJECT
-// haxe --neko ~/Desktop/AAA/code/TEMP_neko.n --main ToolChain_GameMaker && neko TEMP_neko.n SUMMARIZE  # <-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<- DANGER WILL ROBINSON <-<-<- WILL OVER-WRITE $-CODE <-<-<-
+// #      Language (neko for local execution bodge code)                  Custom direction operation
+// #      |    Intermediate file                                          |
+// #      |    |            Main code class                               | 
+// #      V    V             V                                            V                      
+// haxe --neko TEMP_neko.n --main ToolChain_GameMaker && neko TEMP_neko.n TOpROJECT
+// haxe --neko TEMP_neko.n --main ToolChain_GameMaker && neko TEMP_neko.n SUMMARIZE  # <-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<- DANGER WILL ROBINSON <-<-<- WILL OVER-WRITE $-CODE <-<-<-
 
 // This Haxe program is bodge code for processing $-code notes to source code.   https://haxe.org/
 // Any project-related notes should be in electronic (preferrably text) format in a repo, because they belong to the enterprise, and shareholders should be pissed if not.
@@ -78,10 +78,10 @@
 // This code's features
 // ====================
 // 1) File splitter/joiner from $-code to source and back:
-//    Splits and restores files delimited with == == == lines, kept in order with on the return trip with "/// @description 10002 ..." lines.
+//    Splits and restores files delimited with ======== lines, kept in order with on the return trip with "/// @description 10002 ..." lines.
 // 2) Search and replace:
 //    Keeps a list of any search and replace definitions, specified in comments, in the form of:
-//      $REPLACE>needle >  $WITH>replacement >
+//      €REPLACE>needle >  €WITH>replacement >
 //    Makes replacements, and reverses them on the return trip.
 //    Sending to GameMaker, and then getting back from GameMaker, should result in no change to $-code file.
 
@@ -90,13 +90,13 @@ class ToolChain_GameMaker //////////////////////////////////////////////////////
 {/////////////////////////////////////////////////////////////////////////////////////////////////////////>
 
   var              _is                  :Int                    = 1;                                    //> 0 = read from project to summary files, 1 = read summaries and write back to project.;
-  var              _sFileSplit          :String                 = "\n== == ==";                         //> Visual divider, and escape sequence to look for.
-  var              _sPathGameMaker   :String="/home/dave/GameMakerProjects/HitMaker001";                //> Root directory of GameMaker project - "source code"
-  var              _sPathSums        :String="/home/dave/Desktop/AAA/Practical_Math_Music/game_music/"; //> Money code directory.
+  var              _sFileSplit          :String                 = "\n========";                         //> Visual divider, and escape sequence to look for.
+  var              _sPathGameMaker  :String ="/home/dave/GameMakerProjects/HitMaker001";                //> ???Hard-coded? Root directory of GameMaker project - "source code"
+  var              _sPathSums       :String ="/home/dave/Desktop/AAA/Practical_Math_Music/game_music/"; //> ???Hard-coded? Money code directory.
                                         
 //var              _sPathGameMaker   :String="/home/dave/GameMakerProjects/Convention_Maze";            //> Root directory of GameMaker project.
 //var              _sPathSums        :String="/home/dave/Desktop/AAA/Convention_Maze/"     ;            //> Money code directory, gets summary of project.
-                                                                                                        //>
+
 //var              _sGml                :String                 = "";                                   //>
   var              _sReport             :String                 = "";                                   //> Report on files found and processed.
                                         
@@ -148,7 +148,7 @@ class ToolChain_GameMaker //////////////////////////////////////////////////////
  function               ScanFolder_recursive(/////////////////////////////////////////////////////////////> Scan a directory folder and, recursively, scan sub-folders.
                         a_sPath                                                                         //> Path to directory to be scanned.
  )                                      :Void {///////////////////////////////////////////////////////////>
-                                                                                                        trace("Directory found: " + a_sPath); //>
+                                                                                                        //> trace("Directory found: " + a_sPath); //>
   if( !sys.FileSystem.exists(a_sPath) ){                                                                trace("Error: "+ a_sPath +" does not exist."); //>
                                                                                                 return;}//>
   var                   sContent        :String                 = "";                                   //> trace( "Scanning: " + a_sPath );//>
@@ -166,24 +166,24 @@ class ToolChain_GameMaker //////////////////////////////////////////////////////
  )                                      :String {/////////////////////////////////////////////////////////>
   var                   asMoneyMacro    :Array<String>          = [];                                   //>
   var                   asSource        :Array<String>          = [];                                   //>
-  var                   as              :Array<String>          = sGml.split("$REPLACE>");              //>
+  var                   as              :Array<String>          = sGml.split("€REPLACE>");              //>
   for( i in 1... as.length ){                                                                           //>
    var                  as1             :Array<String>   = (   ( as[i].split("\n") )[0]   ).split(">"); //>
    if( 3 < as1.length ){                                                                                //>
     asMoneyMacro.push(   as1[0]   );                                                                    //>
     asSource.push(       as1[2]   );                                                                    //>
   }}//if//for i                                                                                         //>
-                                                                                                        //>
+
   for( i in 0... asMoneyMacro.length ){                                                                 //>
-   trace("Macro search and $REPLACE>"+ asMoneyMacro[i]   +"< $WITH>"+    asSource[i] +"<" );            //>
+   trace("Macro search and €REPLACE>"+ asMoneyMacro[i]   +"< €WITH>"+    asSource[i] +"<" );            //>
    if( 0 == a_isDirection ){                                                                            //> 0= Macro $ code to source
     sGml = sGml.split(              asMoneyMacro[i] ).join(              asSource[    i] );             //> MACRO replacements
-    sGml = sGml.split( "$REPLACE>"+ asSource[    i] ).join( "$REPLACE>"+ asMoneyMacro[i] );             //> But restore the definition lines
+    sGml = sGml.split( "€REPLACE>"+ asSource[    i] ).join( "€REPLACE>"+ asMoneyMacro[i] );             //> But restore the definition lines
    }else{                                                                                               //> 1= source from GameMaker to $ code.
     sGml = sGml.split(              asSource[    i] ).join(              asMoneyMacro[i] );             //> Source replacements back to Macros
-    sGml = sGml.split( "$WITH>"   + asMoneyMacro[i] ).join( "$WITH>"   + asSource[    i] );             //> But restore the definition lines
+    sGml = sGml.split( "€WITH>"   + asMoneyMacro[i] ).join( "€WITH>"   + asSource[    i] );             //> But restore the definition lines
   }}//if//for i                                                                                         //>
-                                                                                                        //>
+
 return sGml;                                                                                            //>
  }//sMacrosReplace////////////////////////////////////////////////////////////////////////////////////////>
 
@@ -203,9 +203,9 @@ return sGml;                                                                    
     if( "\n" == sContent ){ sContent = ""; }                                                            //>
     sContent = StringTools.rtrim( asLine0.join(" ") ) +"\n"+ sContent;                                  //>
     sys.io.File.saveContent(   asLines[0] ,sContent   );                                                //> File name, followed by all other lines.
+                                                                                                        trace( "*** Write to "+ asLines[0] );//>
    }catch(e:haxe.Exception){                                                                            trace( "oops '"+ asLines[0] +"': "+ e.message +" "+ e.stack );//>
    }//try                                                                                               //>
-                                                                                                        trace( "*** Write to "+ asLines[0] );//>
   }//for i                                                                                              //>
  }//new_ToProject/////////////////////////////////////////////////////////////////////////////////////////>
 
@@ -214,7 +214,10 @@ return sGml;                                                                    
  ){                     //////////////////////////////////////////////////////////////////////////////////>
   _sReport       = "";                                                                                  //>
   ScanFolder_recursive(    _sPathGameMaker                             );                               //>
-  sys.io.File.saveContent( _sPathSums +"SUMMARY_s.txt"    ,_sReport    );                               //>
+  try{
+   sys.io.File.copy(       _sPathSums +"SUMMARY_s.txt", _sPathSums +"OLD_SUMMARY_s.txt");
+  }catch(e:haxe.Exception){};                                                                                //> If file does not exist, do nothing
+  sys.io.File.saveContent( _sPathSums +"SUMMARY_s.txt" ,_sReport );                                     //>
   _asGml.sort(         function(a, b){                                                                  //> Sort List of *.gml files' contents by
                         var             A                       = ( (a+"\n0").split("\n") )[2];         //> second line (first is file name).
                         var             B                       = ( (b+"\n0").split("\n") )[2];         //>
@@ -224,19 +227,32 @@ return sGml;                                                                    
   );                                                                                                    //>
   var                                   sGml                    = _asGml.join("");                      //>
   sGml = sMacrosReplace(sGml ,1);                                                                       //>
-                                                                                                        //>
-//sGml = StringTools.replace( sGml ," 0!= "   ," $IS " );                                               //> MACRO replacements
-//sGml = StringTools.replace( sGml ," 0== "   ," $NO " );                                               //>
-//sGml = StringTools.replace( sGml ,"global." , "$."   );                                               //> !!! Cannot end a variable with "global"!
-                                                                                                        //>
+
+//sGml = StringTools.replace( sGml ," 0!= "   ," |IS " );                                               //> MACRO replacements
+//sGml = StringTools.replace( sGml ," 0== "   ," |NO " );                                               //>
+//sGml = StringTools.replace( sGml ,"global." , "|."   );                                               //> !!! Cannot end a variable with "global"!
+
+  try{
+   sys.io.File.copy(       _sPathSums +"SUMMARY_sGml.txt", _sPathSums +"OLD_SUMMARY_sGml.txt");
+  }catch(e:haxe.Exception){ trace("111"); }                                                             //> If file does not exist, do nothing
   sys.io.File.saveContent( _sPathSums +"SUMMARY_sGml.txt" ,sGml  );                                     //>
-  trace( "*** Write to "+  _sPathSums +"SUMMARY_sGml.txt"        );                                     //>
-                                                                                                        //>
-  sys.io.File.saveContent( _sPathSums +"SUMMARY_sYy.txt"  ,_sYy  );                                     //>
-  trace( "*** Write to "+  _sPathSums +"SUMMARY_sYy.txt"         );                                     //>
-                                                                                                        //>
-  sys.io.File.saveContent( _sPathSums +"SUMMARY_sYyp.txt" ,_sYyp );                                     //>
-  trace( "*** Write to "+  _sPathSums +"SUMMARY_sYyp.txt"        );                                     //>
+
+  try{
+   sys.io.File.copy(       _sPathSums +"SUMMARY_sYy.txt" , _sPathSums +"OLD_SUMMARY_sYy.txt" );
+  }catch(e:haxe.Exception){ trace("1121"); }                                                            //> If file does not exist, do nothing
+  sys.io.File.saveContent( _sPathSums +"SUMMARY_sYy.txt"  ,sGml  );                                     //>
+
+  try{
+   sys.io.File.copy(       _sPathSums +"SUMMARY_sYyp.txt", _sPathSums +"OLD_SUMMARY_sYyp.txt");
+  }catch(e:haxe.Exception){ trace("1131"); }                                                            //> If file does not exist, do nothing
+  sys.io.File.saveContent( _sPathSums +"SUMMARY_sYyp.txt" ,sGml  );                                     //>
+
+
+//  sys.io.File.saveContent( _sPathSums +"SUMMARY_sYy.txt"  ,_sYy  );                                     //>
+//  trace( "*** Write to "+  _sPathSums +"SUMMARY_sYy.txt"         );                                     //>
+//
+//  sys.io.File.saveContent( _sPathSums +"SUMMARY_sYyp.txt" ,_sYyp );                                     //>
+//  trace( "*** Write to "+  _sPathSums +"SUMMARY_sYyp.txt"        );                                     //>
  }//new_Summarize/////////////////////////////////////////////////////////////////////////////////////////>
 
 
@@ -258,7 +274,7 @@ return sGml;                                                                    
   #end                                                                                                  //>
   new ToolChain_GameMaker();                                                                            //> Create and run and instance of main code.
  }//main//////////////////////////////////////////////////////////////////////////////////////////////////>
-                                                                                                        //>
+
 }//class ToolChain_GameMaker//////////////////////////////////////////////////////////////////////////////>
 //////////////////////////////////////////////////////////////////////////////////////////////////////////>
 
