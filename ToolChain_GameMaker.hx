@@ -173,7 +173,7 @@ class ToolChain_GameMaker //////////////////////////////////////////////////////
     asMoneyMacro.push(   as1[0]   );                                                                    //>
     asSource.push(       as1[2]   );                                                                    //>
   }}//if//for i                                                                                         //>
-
+                                                                                                        //>
   for( i in 0... asMoneyMacro.length ){                                                                 //>
    trace("Macro search and €REPLACE>"+ asMoneyMacro[i]   +"< €WITH>"+    asSource[i] +"<" );            //>
    if( 0 == a_isDirection ){                                                                            //> 0= Macro $ code to source
@@ -183,7 +183,7 @@ class ToolChain_GameMaker //////////////////////////////////////////////////////
     sGml = sGml.split(              asSource[    i] ).join(              asMoneyMacro[i] );             //> Source replacements back to Macros
     sGml = sGml.split( "€WITH>"   + asMoneyMacro[i] ).join( "€WITH>"   + asSource[    i] );             //> But restore the definition lines
   }}//if//for i                                                                                         //>
-
+                                                                                                        //>
 return sGml;                                                                                            //>
  }//sMacrosReplace////////////////////////////////////////////////////////////////////////////////////////>
 
@@ -213,10 +213,10 @@ return sGml;                                                                    
  function               new_Summarize(////////////////////////////////////////////////////////////////////> Get source from GameMaker, write to summary files (concatenate everything).
  ){                     //////////////////////////////////////////////////////////////////////////////////>
   _sReport       = "";                                                                                  //>
-  ScanFolder_recursive(    _sPathGameMaker                             );                               //>
-  try{
-   sys.io.File.copy(       _sPathSums +"SUMMARY_s.txt", _sPathSums +"OLD_SUMMARY_s.txt");
-  }catch(e:haxe.Exception){};                                                                                //> If file does not exist, do nothing
+  ScanFolder_recursive(    _sPathGameMaker                       );                                     //>
+  try{                                                                                                  //>
+   sys.io.File.copy(       _sPathSums +"SUMMARY_s.txt", _sPathSums +"OLD_SUMMARY_s.txt");               //>
+  }catch(e:haxe.Exception){};                                                                           //> If file does not exist, do nothing
   sys.io.File.saveContent( _sPathSums +"SUMMARY_s.txt" ,_sReport );                                     //>
   _asGml.sort(         function(a, b){                                                                  //> Sort List of *.gml files' contents by
                         var             A                       = ( (a+"\n0").split("\n") )[2];         //> second line (first is file name).
@@ -227,32 +227,25 @@ return sGml;                                                                    
   );                                                                                                    //>
   var                                   sGml                    = _asGml.join("");                      //>
   sGml = sMacrosReplace(sGml ,1);                                                                       //>
-
+                                                                                                        //>
 //sGml = StringTools.replace( sGml ," 0!= "   ," |IS " );                                               //> MACRO replacements
 //sGml = StringTools.replace( sGml ," 0== "   ," |NO " );                                               //>
 //sGml = StringTools.replace( sGml ,"global." , "|."   );                                               //> !!! Cannot end a variable with "global"!
-
-  try{
-   sys.io.File.copy(       _sPathSums +"SUMMARY_sGml.txt", _sPathSums +"OLD_SUMMARY_sGml.txt");
+                                                                                                        //>
+  try{                                                                                                  //>
+   sys.io.File.copy(       _sPathSums +"SUMMARY_sGml.txt" ,_sPathSums +"OLD_SUMMARY_sGml.txt");         //>
   }catch(e:haxe.Exception){ trace("111"); }                                                             //> If file does not exist, do nothing
   sys.io.File.saveContent( _sPathSums +"SUMMARY_sGml.txt" ,sGml  );                                     //>
-
-  try{
-   sys.io.File.copy(       _sPathSums +"SUMMARY_sYy.txt" , _sPathSums +"OLD_SUMMARY_sYy.txt" );
+                                                                                                        //>
+  try{                                                                                                  //>
+   sys.io.File.copy(       _sPathSums +"SUMMARY_sYy.txt"  ,_sPathSums +"OLD_SUMMARY_sYy.txt" );         //>
   }catch(e:haxe.Exception){ trace("1121"); }                                                            //> If file does not exist, do nothing
-  sys.io.File.saveContent( _sPathSums +"SUMMARY_sYy.txt"  ,sGml  );                                     //>
-
-  try{
-   sys.io.File.copy(       _sPathSums +"SUMMARY_sYyp.txt", _sPathSums +"OLD_SUMMARY_sYyp.txt");
+  sys.io.File.saveContent( _sPathSums +"SUMMARY_sYy.txt"  ,_sYy  );                                     //>
+                                                                                                        //>
+  try{                                                                                                  //>
+   sys.io.File.copy(       _sPathSums +"SUMMARY_sYyp.txt" ,_sPathSums +"OLD_SUMMARY_sYyp.txt");         //>
   }catch(e:haxe.Exception){ trace("1131"); }                                                            //> If file does not exist, do nothing
-  sys.io.File.saveContent( _sPathSums +"SUMMARY_sYyp.txt" ,sGml  );                                     //>
-
-
-//  sys.io.File.saveContent( _sPathSums +"SUMMARY_sYy.txt"  ,_sYy  );                                     //>
-//  trace( "*** Write to "+  _sPathSums +"SUMMARY_sYy.txt"         );                                     //>
-//
-//  sys.io.File.saveContent( _sPathSums +"SUMMARY_sYyp.txt" ,_sYyp );                                     //>
-//  trace( "*** Write to "+  _sPathSums +"SUMMARY_sYyp.txt"        );                                     //>
+  sys.io.File.saveContent( _sPathSums +"SUMMARY_sYyp.txt" ,_sYyp  );                                    //>
  }//new_Summarize/////////////////////////////////////////////////////////////////////////////////////////>
 
 
