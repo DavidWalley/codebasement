@@ -202,8 +202,9 @@ return sGml;                                                                    
     var                 sContent        :String                 = ( asLines.slice(2) ).join("\n");      //>
     if( "\n" == sContent ){ sContent = ""; }                                                            //>
     sContent = StringTools.rtrim( asLine0.join(" ") ) +"\n"+ sContent;                                  //>
-    sys.io.File.saveContent(   asLines[0] ,sContent   );                                                //> File name, followed by all other lines.
-                                                                                                        trace( "*** Write to "+ asLines[0] );//>
+    sys.io.File.saveContent(   asLine0[0] ,sContent   );                                                //> File name, followed by all other lines.
+                                                                                                        trace( "*** Write to >"+ asLine0[0] +"<" );//>
+                                                                                                        // trace( "^^^" );//>
    }catch(e:haxe.Exception){                                                                            trace( "oops '"+ asLines[0] +"': "+ e.message +" "+ e.stack );//>
    }//try                                                                                               //>
   }//for i                                                                                              //>
