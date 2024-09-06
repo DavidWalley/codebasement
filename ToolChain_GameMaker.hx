@@ -192,21 +192,24 @@ return sGml;                                                                    
  ){                     //////////////////////////////////////////////////////////////////////////////////>
   var                   sGml           :String = sys.io.File.getContent(_sPathSums+"SUMMARY_sGml.txt"); //> Money code directory, get contents of $ code (summary file).
   sGml = sMacrosReplace(sGml ,0);                                                                       //> MACRO replacements
-  var                   asFiles         :Array<String>          = sGml.split( _sFileSplit );            //> Split into individual files.
+  var                   asFiles         :Array<String>          = sGml.split( _sFileSplit );            //> Split into individual files on custom delimiter.
   for( i in 1... asFiles.length ){                                                                      //>
-   var                  asLines         :Array<String>          = asFiles[i].split( "\n" );             //>
-   if( "" == asLines[0] ){                                                                    continue;}//>
-   try{                                                                                                 //>
-    var                 asLine0         :Array<String>          = ( asLines[1]+"    " ).split(" ");     //>
-    asLine0[2] = ""+ (10000 + i);                                                                       //>
-    var                 sContent        :String                 = ( asLines.slice(2) ).join("\n");      //>
-    if( "\n" == sContent ){ sContent = ""; }                                                            //>
-    sContent = StringTools.rtrim( asLine0.join(" ") ) +"\n"+ sContent;                                  //>
-    sys.io.File.saveContent(   asLine0[0] ,sContent   );                                                //> File name, followed by all other lines.
-                                                                                                        trace( "*** Write to >"+ asLine0[0] +"<" );//>
-                                                                                                        // trace( "^^^" );//>
+   var                  asLines         :Array<String>          = asFiles[i].split( "\n" );             //> Split file into lines.
+   var                  sFile           :String                 = asLines[0].split(" ")[0];
+//trace( ">0>"+ sFile +"<<" );
+//trace( ">1>"+ asLines[1] +"<<" );
+
+  try{                                                                                                 //>
+   var                 asLine0         :Array<String>          = ( asLines[1]+"    " ).split(" ");     //>
+   asLine0[2] = ""+ (10000 + i);                                                                       //>
+   var                 sContent        :String                 = ( asLines.slice(2) ).join("\n");      //>
+   if( "\n" == sContent ){ sContent = ""; }                                                            //>
+   sContent = StringTools.rtrim( asLine0.join(" ") ) +"\n"+ sContent;                                  //>
+   sys.io.File.saveContent(   sFile ,sContent   );                                                //> File name, followed by all other lines.
+                                                                                                        trace( "*** Write to >"+ sFile +"<" );//>
    }catch(e:haxe.Exception){                                                                            trace( "oops '"+ asLines[0] +"': "+ e.message +" "+ e.stack );//>
    }//try                                                                                               //>
+
   }//for i                                                                                              //>
  }//new_ToProject/////////////////////////////////////////////////////////////////////////////////////////>
 
